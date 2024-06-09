@@ -1,0 +1,79 @@
+version: '3'
+
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: true
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: kings_guard
+      MYSQL_USER:
+      MYSQL_PASSWORD:
+    volumes:
+      - db-vol:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+#  elasticsearch:
+#    image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0
+#    container_name: elasticsearch
+#    restart: always
+#    environment:
+#      - xpack.security.enabled=false
+#      - discovery.type=single-node
+#    ulimits:
+#      memlock:
+#        soft: -1
+#        hard: -1
+#      nofile:
+#        soft: 65536
+#        hard: 65536
+#    cap_add:
+#      - IPC_LOCK
+#    volumes:
+#      - elasticsearch-data:/usr/share/elasticsearch/data
+#    ports:
+#      - 9200:9200
+#      - 9300:9300
+
+  phpmyadmin:
+    image: phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 40M
+    restart: always
+    ports:
+      - "8080:80"
+
+#  rabbitmq:
+#    image: rabbitmq:3-management-alpine
+#    ports:
+#      - 5672:5672
+#      - 15672:15672
+#    volumes:
+#      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+#      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+#    networks:
+#      - rabbitmq_go_net
+
+#  web:
+#    build: .
+#    working_dir: /var/www/html/public
+#    depends_on:
+#      - db
+#      - rabbitmq
+#    ports:
+#      - "8000:80"
+#    volumes:
+#      - ./:/var/www/html/
+
+#networks:
+#  rabbitmq_go_net:
+#    driver: bridge
+
+volumes:
+  db-vol:
+  caddy_data:
+  caddy_config:
+#  elasticsearch-data:
