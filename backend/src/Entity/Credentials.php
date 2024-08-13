@@ -26,6 +26,9 @@ class Credentials
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $notes = null;
 
+    #[ORM\ManyToOne(inversedBy: 'credentials')]
+    private ?Group $category = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -75,6 +78,18 @@ class Credentials
     public function setNotes(?string $notes): static
     {
         $this->notes = $notes;
+
+        return $this;
+    }
+
+    public function getCategory(): ?Group
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?Group $category): static
+    {
+        $this->category = $category;
 
         return $this;
     }
