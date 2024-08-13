@@ -4,6 +4,10 @@ controllers:
         namespace: App\Controller
     type: attribute
 
+login:
+    path: /login
+    controller: App\Controller\UserController::login
+
 # USERS
 api_users_index:
     path: /api/users
