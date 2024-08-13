@@ -24,6 +24,14 @@ class User implements UserInterface
     #[ORM\Column]
     private array $roles = [];
 
+    #[ORM\Column(length: 510)]
+    private ?string $password = null;
+
+    public function __toString()
+    {
+        return $this->email;
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -82,5 +90,17 @@ class User implements UserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(string $password): static
+    {
+        $this->password = $password;
+
+        return $this;
     }
 }

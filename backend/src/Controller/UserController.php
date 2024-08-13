@@ -2,13 +2,13 @@
 
 namespace App\Controller;
 
-use App\Entity\Credentials;
+use App\Entity\User;
 use App\Service\CRUDService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
-class CredentialsController extends AbstractController
+class UserController extends AbstractController
 {
     private CRUDService $crudService;
 
@@ -19,28 +19,28 @@ class CredentialsController extends AbstractController
 
     public function index(): JsonResponse
     {
-        return $this->crudService->index(Credentials::class);
+        return $this->crudService->index(User::class);
     }
 
     public function show(int $id): JsonResponse
     {
-        return $this->crudService->show(Credentials::class, $id);
+        return $this->crudService->show(User::class, $id);
     }
 
     public function create(Request $request): JsonResponse
     {
         $data = $request->getContent();
-        return $this->crudService->create(Credentials::class, $data);
+        return $this->crudService->create(User::class, $data);
     }
 
     public function update(int $id, Request $request): JsonResponse
     {
         $data = $request->getContent();
-        return $this->crudService->update(Credentials::class, $id, $data);
+        return $this->crudService->update(User::class, $id, $data);
     }
 
     public function delete(int $id): JsonResponse
     {
-        return $this->crudService->delete(Credentials::class, $id);
+        return $this->crudService->delete(User::class, $id);
     }
 }

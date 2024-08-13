@@ -29,6 +29,14 @@ class Credentials
     #[ORM\ManyToOne(inversedBy: 'credentials')]
     private ?Group $category = null;
 
+    #[ORM\Column(length: 510)]
+    private ?string $password = null;
+
+    public function __toString()
+    {
+        return $this->username;
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -90,6 +98,18 @@ class Credentials
     public function setCategory(?Group $category): static
     {
         $this->category = $category;
+
+        return $this;
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(string $password): static
+    {
+        $this->password = $password;
 
         return $this;
     }
