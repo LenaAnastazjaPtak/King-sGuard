@@ -23,14 +23,14 @@ class UserController extends AbstractController
     {
         $data = $serializer->deserialize($request->getContent(), User::class, 'json');
 
-        $realUsersPassword = $entityManager->getRepository(User::class)->findOneBy(['email' => $data->getEmail()]);
+        $user = $entityManager->getRepository(User::class)->findOneBy(['email' => $data->getEmail()]);
 
-        if (!$realUsersPassword) {
+        if (!$user) {
             return new JsonResponse(['message' => "User doesn't exist."], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        if ($realUsersPassword->getPassword() === $data->getPassword()) {
-            return new JsonResponse(['message' => "logged in"], JsonResponse::HTTP_OK);
+        if ($user->getPassword() === $data->getPassword()) {
+            return new JsonResponse(['message' => "Logged in.", 'publicKey' => $user->getPublicKey()], JsonResponse::HTTP_OK);
         }
 
         return new JsonResponse(['message' => "Wrong credentials!"], JsonResponse::HTTP_UNAUTHORIZED);

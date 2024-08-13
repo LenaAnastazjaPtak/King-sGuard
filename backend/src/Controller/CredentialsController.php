@@ -30,6 +30,7 @@ class CredentialsController extends AbstractController
     public function create(Request $request): JsonResponse
     {
         $data = $request->getContent();
+
         return $this->crudService->create(Credentials::class, $data);
     }
 

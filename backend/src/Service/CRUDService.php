@@ -2,6 +2,8 @@
 
 namespace App\Service;
 
+use App\Entity\Credentials;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -38,6 +40,19 @@ class CRUDService
     public function create(string $entityClass, string $data): JsonResponse
     {
         $entity = $this->serializer->deserialize($data, $entityClass, 'json');
+
+        if ($entityClass == Credentials::class) {
+            $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $entity->getUsername()]);
+
+            if (!$user) {
+                return new JsonResponse(['message' => "User not found"], JsonResponse::HTTP_NOT_FOUND);
+            }
+
+            $this->entityManager->persist($entity);
+            $this->entityManager->flush();
+
+            return new JsonResponse(['message' => "{$entity} created.", 'publicKey' => $user->getPublicKey()], JsonResponse::HTTP_CREATED);
+        }
 
         $this->entityManager->persist($entity);
         $this->entityManager->flush();

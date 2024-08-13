@@ -27,6 +27,9 @@ class User implements UserInterface
     #[ORM\Column(length: 510)]
     private ?string $password = null;
 
+    #[ORM\Column(length: 510)]
+    private ?string $publicKey = null;
+
     public function __toString()
     {
         return $this->email;
@@ -100,6 +103,18 @@ class User implements UserInterface
     public function setPassword(string $password): static
     {
         $this->password = $password;
+
+        return $this;
+    }
+
+    public function getPublicKey(): ?string
+    {
+        return $this->publicKey;
+    }
+
+    public function setPublicKey(string $publicKey): static
+    {
+        $this->publicKey = $publicKey;
 
         return $this;
     }
