@@ -89,3 +89,19 @@ export const decryptPassword = (privateKeyPem: string, encryptedPasswordBase64: 
 
     return decryptedPassword;
 };
+
+export const verifyMasterPassword = (masterPassword: string, publicKeyPem: string): undefined | string => {
+    if (masterPassword === "") return;
+
+    const startTime = performance.now();
+    const { privateKeyPem } = generateKeyPairFromString(masterPassword);
+    // console.log(privateKeyPem);
+
+    const endTime = performance.now();
+    if (!verifyKeyPair(publicKeyPem, privateKeyPem)) {
+        console.log("INCORRECT MASTER PASSWORD");
+        return;
+    }
+    console.log(`Time taken to generate private PEM: ${endTime - startTime}ms`);
+    return privateKeyPem;
+};
