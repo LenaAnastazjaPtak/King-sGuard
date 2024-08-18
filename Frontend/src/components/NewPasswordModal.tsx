@@ -1,5 +1,7 @@
-import { Box, Button, Modal, Typography } from '@mui/material';
+import { Box, Button, Modal, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
+import CustomSwitch from './CustomSwitch';
+import PasswordGenerator from './PasswordGenerator';
 
 type Props = {
     isModalOpen: boolean;
@@ -17,12 +19,50 @@ const style = {
     border: '2px solid #000',
     boxShadow: 24,
     p: 4,
-    color: "black"
+    color: "black",
+    display: 'flex',
+    justifyContent: 'center',
+    flexDirection: 'column', gap: "1.5rem"
+
 };
 
 const NewPasswordModal = ({ isModalOpen, handleClose, handleSave }: Props) => {
     const [password, setPassword] = useState<string>("");
     const [website, setWebsite] = useState<string>("");
+    const [passwordSource, setPasswordSource] = useState<string>("Your Password");
+    const [websiteError, setWebsiteError] = useState<string>("");
+    const [passwordError, setPasswordError] = useState<string>("");
+
+
+    const handleAddNewPassword = () => {
+        if (website === "") {
+            setWebsiteError("Website Cannot Be Empty");
+            return
+        }
+        if (password === "") {
+            setPasswordError("Password Cannot Be Empty");
+            return
+        }
+        handleSave(password, website);
+    }
+
+    const handleChangeWebsite = (value: string) => {
+        setWebsite(value);
+        setWebsiteError(value === "" ? "Website Cannot Be Empty" : "");
+    }
+
+    const handleChangePassword = (value: string) => {
+        setPassword(value);
+        setPasswordError(value === "" ? "Password Cannot Be Empty" : "");
+    }
+
+    const handleChangePasswordSource = (value: string) => {
+        setPasswordSource(value);
+        if (password !== "") {
+            setPasswordError("");
+        }
+
+    }
 
     return (
         <div>
@@ -31,16 +71,38 @@ const NewPasswordModal = ({ isModalOpen, handleClose, handleSave }: Props) => {
                 onClose={handleClose}
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
+                style={{}}
             >
                 <Box sx={style}>
-                    <p>Website</p>
-                    {/* <Typography>Website</Typography> */}
-                    <input type="text" onChange={(e) => setWebsite(e.target.value)} />
-                    <p>Password</p>
-                    <input type="text" onChange={(e) => setPassword(e.target.value)} />
-                    <br />
-                    <Button onClick={() => handleSave(password, website)}>Add New Password</Button>
+                    <TextField
+                        id="outlined-error-helper-text"
+                        label="Website"
+                        placeholder='Your Website'
+                        helperText={websiteError}
+                        value={website}
+                        onChange={(e) => handleChangeWebsite(e.target.value)}
+                        error={websiteError !== ""}
+                    />
+                    <CustomSwitch
+                        options={["Your Password", "Generated Password"]}
+                        selected={passwordSource}
+                        setSelected={handleChangePasswordSource}
+                    />
+                    {passwordSource === "Your Password" ?
+                        <TextField
+                            id="outlined-error-helper-text"
+                            label="Password"
+                            placeholder='Your Password'
+                            helperText={passwordError}
+                            value={password}
+                            onChange={(e) => handleChangePassword(e.target.value)}
+                            error={passwordError !== ""}
+                        /> :
+                        <PasswordGenerator setPassword={setPassword} password={password} width="100%" />
+                    }
+                    <Button onClick={handleAddNewPassword}>Add New Password</Button>
                 </Box>
+
             </Modal>
         </div>
     )

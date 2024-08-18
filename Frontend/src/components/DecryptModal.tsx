@@ -1,4 +1,4 @@
-import { Box, Button, Modal } from '@mui/material';
+import { Box, Button, Modal, TextField } from '@mui/material';
 import { useState } from 'react'
 
 type Props = {
@@ -18,16 +18,24 @@ const style = {
     border: '2px solid #000',
     boxShadow: 24,
     p: 4,
-    color: "black"
+    color: "black",
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: "0.5rem", flexDirection: 'column'
 };
 
+const paragraphStyle = {
+    width: "100%",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+}
+
 const DecryptModal = ({ password, handleDecryptPassword, isModalOpen, handleClose }: Props) => {
-    const [masterPassword, setMasterPassword] = useState<string>("");
+    const [localMasterPassword, setLocalMasterPassword] = useState<string>("");
     const [decryptedPassword, setDecryptedPassword] = useState<string>("");
     const [error, setError] = useState<string>("");
 
     const handleLocalDecrypt = () => {
-        const result = handleDecryptPassword(password, masterPassword);
+        const result = handleDecryptPassword(localMasterPassword, password);
         if (result) {
             setDecryptedPassword(result)
             setError("");
@@ -37,6 +45,11 @@ const DecryptModal = ({ password, handleDecryptPassword, isModalOpen, handleClos
         }
     }
 
+    const handleChangeLocalMasterPassword = (value: string) => {
+        setLocalMasterPassword(value);
+        setError(value === "" ? "Master Password Cannot Be Empty" : "");
+    }
+
     return (
         <div>
             <Modal
@@ -44,15 +57,32 @@ const DecryptModal = ({ password, handleDecryptPassword, isModalOpen, handleClos
                 onClose={handleClose}
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
+                sx={{}}
+
             >
                 <Box sx={style}>
-                    <p>Encrypted Password</p>
-                    <p>{password}</p>
-                    <p>Master Password</p>
-                    <input type="text" onChange={(e) => setMasterPassword(e.target.value)} />
-                    <br />
-                    <Button onClick={() => handleLocalDecrypt()}>Decrypt</Button>
-                    {decryptedPassword !== "" && <><p>Decrypted Password</p><p>{decryptedPassword}</p></>}{error && <><p>Error</p><p>{error}</p></>}
+                    <h3>Encrypted Password</h3>
+                    <p style={paragraphStyle}>{password}</p>
+                    <h3>Master Password</h3>
+                    <TextField
+                        id="outlined-error-helper-text"
+                        label="Master Password"
+                        placeholder='Master Password'
+                        helperText={error}
+                        value={localMasterPassword}
+                        onChange={(e) => handleChangeLocalMasterPassword(e.target.value)}
+                        error={error !== ""}
+                        fullWidth
+                        color='secondary'
+                    />
+                    <Button fullWidth
+                        color='secondary' sx={{ outline: "1px solid purple" }} onClick={() => handleLocalDecrypt()}>Decrypt</Button>
+                    {decryptedPassword !== "" &&
+                        <div style={{ textAlign: "center" }}>
+                            <p>Your Decrypted Password:</p>
+                            <h3>{decryptedPassword}</h3>
+                        </div>}
+                    {error && <h4>Error: {error}</h4>}
                 </Box>
             </Modal>
         </div>

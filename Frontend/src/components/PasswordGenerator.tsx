@@ -9,9 +9,10 @@ const specialChars = '!@#$%^&*()_+/\|?<>;:{}[]'
 interface PasswordGeneratorProps {
   setPassword: (password: string) => void
   password: string
+  width?: string
 }
 
-const PasswordGenerator = ({ password, setPassword }: PasswordGeneratorProps) => {
+const PasswordGenerator = ({ password, setPassword, width }: PasswordGeneratorProps) => {
   const [length, setLength] = useState<number>(12)
   const [digitsFlag, setDigitsFlag] = useState<boolean>(true)
   const [specialCharsFlag, setSpecialCharsFlag] = useState<boolean>(true)
@@ -47,7 +48,7 @@ const PasswordGenerator = ({ password, setPassword }: PasswordGeneratorProps) =>
   }, [length, digitsFlag, specialCharsFlag])
 
   return (
-    <div style={{ width: "1000px" }}>
+    <div style={{ width: width ? width : "1000px" }}>
       <h2>Password Generator</h2>
       <div style={{ display: 'flex', alignItems: 'center', gap: "20px" }}>
         <div style={{ width: "50%", display: "flex", alignItems: 'center', textWrap: 'nowrap', gap: "1rem" }}>

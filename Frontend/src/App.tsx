@@ -22,7 +22,7 @@ const PASSWORDS: PasswordInterface[] = [
 const App = () => {
   const [masterPassword, setMasterPassword] = useState<string>("ABCDEFG");
   const [password, setPassword] = useState<string>("XYZ");
-  const [encryptedPassword, setEncryptedPassword] = useState<string>("");
+  // const [encryptedPassword, setEncryptedPassword] = useState<string>("");
   // const [equal, setEqual] = useState<boolean>(false);
   // const [newPassword, setNewPassword] = useState<string>("");
   // const [newPrivateKeyPem, setNewPrivateKeyPem] = useState<string>("");
@@ -30,7 +30,7 @@ const App = () => {
   const [search, setSearch] = useState<string>("");
   const [filteredPasswords, setFilteredPasswords] = useState<PasswordInterface[]>(PASSWORDS);
   const [passwordToDecrypt, setPasswordToDecrypt] = useState<string>("");
-
+  // const [decryptedPassword, setDecryptedPassword] = useState<string>("");
   const [isAddPasswordModalOpen, setIsAddPasswordModalOpen] = useState<boolean>(false);
   const [isDecryptModalOpen, setIsDecryptModalOpen] = useState<boolean>(false);
 
@@ -44,13 +44,7 @@ const App = () => {
   // }
 
   const handleAddNewPassword = (password: string, website: string) => {
-    if (password === "" || website === "") {
-      alert("Password or website cannot be empty");
-      return;
-    }
-
     const encryptedPassword = encryptPassword(PUBLIC_KEY_PEM, password);
-
     const newId = PASSWORDS[PASSWORDS.length - 1].id + 1;
     const newPasswords = [...PASSWORDS, { id: newId, password: encryptedPassword, website }];
     PASSWORDS.push({ id: newId, password, website });
@@ -67,12 +61,14 @@ const App = () => {
     setFilteredPasswords(localFilteredPasswords);
   }
 
-  const handleEncryptPassword = (pass: string) => {
-    const encrypted = encryptPassword(PUBLIC_KEY_PEM, pass);
-    setEncryptedPassword(encrypted);
-  }
+  // const handleEncryptPassword = (pass: string) => {
+  //   const encrypted = encryptPassword(PUBLIC_KEY_PEM, pass);
+  //   setEncryptedPassword(encypted);
+  //   handleAddNewPassword(pass, "test.com");
+  // }
 
   const handleDecryptPassword = (passedMasterPassword: string, encryptedPassword: string) => {
+
     const localPEM = verifyMasterPassword(passedMasterPassword, PUBLIC_KEY_PEM);
     if (!localPEM) return;
 
@@ -82,25 +78,37 @@ const App = () => {
   }
 
   const handleDecryptPasswordButton = (password: string) => {
+    console.log(password)
     setPasswordToDecrypt(password);
     setIsDecryptModalOpen(true);
   }
 
   return <main style={{ width: "1000px" }}>
-    <PasswordGenerator setPassword={setPassword} password={password} />
+    {/* <PasswordGenerator setPassword={setPassword} password={password} /> */}
     {/* <input type="text" onChange={(e) => setPassword(e.target.value)} />
     <p>Password Before Encription: {password}</p>
     <button onClick={() => handleGenerateKeyPair()}>GENERATE</button>
     <p>Private: {privateKeyPem}</p>
     <p>Public: {publicKeyPem}</p> */}
+    <button onClick={() => verifyMasterPassword(masterPassword, PUBLIC_KEY_PEM)}>Verify</button>
     <h3>MASTER PASSWORD</h3>
     <input type="text" value={masterPassword} onChange={(e) => { setMasterPassword(e.target.value) }} />
+    {/* 
     <hr />
+    <input type="text" value={password} onChange={(e) => { setPassword(e.target.value) }} />
     <div>
       <h3>Encrypt Password</h3>
       <button onClick={() => handleEncryptPassword(password)}>ENCRYPT</button>
       <p style={{ wordWrap: "break-word" }}>{encryptedPassword}</p>
     </div>
+    <hr />
+    <div>
+      <h3>DECRYPT PASSWORD</h3>
+      <button onClick={tmpWrapper}>DECRYPT</button>
+      {decryptedPassword && <p style={{ wordWrap: "break-word" }}>{decryptedPassword}</p>}
+    </div> */}
+    <br />
+    <hr />
     <button onClick={() => { setIsAddPasswordModalOpen(true) }}>ADD NEW PASSWORD</button>
     <hr />
     <label htmlFor="searchbar">Search: </label><input type="text" name="searchbar" id="searchbar" value={search} onChange={(e) => handleSearch(e.target.value)} />
@@ -144,8 +152,8 @@ const App = () => {
     </TableContainer> :
       <div><h3>No data matches search phrase</h3></div>
     }
-    <NewPasswordModal isModalOpen={isAddPasswordModalOpen} handleClose={() => setIsAddPasswordModalOpen(false)} handleSave={handleAddNewPassword} />
-    <DecryptModal password={passwordToDecrypt} handleDecryptPassword={handleDecryptPassword} isModalOpen={isDecryptModalOpen} handleClose={() => setIsDecryptModalOpen(false)} />
+    {isAddPasswordModalOpen && <NewPasswordModal isModalOpen={isAddPasswordModalOpen} handleClose={() => setIsAddPasswordModalOpen(false)} handleSave={handleAddNewPassword} />}
+    {isDecryptModalOpen && <DecryptModal password={passwordToDecrypt} handleDecryptPassword={handleDecryptPassword} isModalOpen={isDecryptModalOpen} handleClose={() => setIsDecryptModalOpen(false)} />}
   </main >;
 }
 

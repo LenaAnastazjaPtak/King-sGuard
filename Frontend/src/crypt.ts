@@ -9,18 +9,15 @@ export const comparePemKeys = (key1: string, key2: string) => {
 }
 
 export const generateKeyPairFromString = (baseString: string) => {
-    // Użyj PBKDF2, aby wygenerować deterministyczny seed na podstawie hasła
-    const salt = 'some-fixed-salt'; // Stała wartość soli
+    const salt = 'some-fixed-salt';
     const iterations = 10000;
     const seed = forge.pkcs5.pbkdf2(baseString, salt, iterations, 32);
 
-    // Własny generator liczb pseudolosowych z seedem
     const prng = forge.random.createInstance();
     prng.seedFileSync = (count: number) => {
         return seed.substring(0, count);
     };
 
-    // Generuj parę kluczy RSA
     const keyPair = forge.pki.rsa.generateKeyPair({
         bits: KEY_LENGTH,
         e: 0x10001,
@@ -32,61 +29,52 @@ export const generateKeyPairFromString = (baseString: string) => {
 
     return { privateKeyPem, publicKeyPem };
 };
+
+
 export const verifyKeyPair = (publicKeyPem: string, privateKeyPem: string): boolean => {
     try {
-        // Załaduj klucz publiczny
         const publicKey = forge.pki.publicKeyFromPem(publicKeyPem);
-
-        // Załaduj klucz prywatny
         const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
-
-        // Wiadomość do przetestowania
         const testMessage = 'TestMessage123';
 
-        // Zaszyfruj wiadomość przy użyciu klucza publicznego
         const encrypted = publicKey.encrypt(testMessage, 'RSA-OAEP', {
             md: forge.md.sha256.create()
         });
 
-        // Odszyfruj wiadomość przy użyciu klucza prywatnego
+        // console.log('Encrypted message:', forge.util.encode64(encrypted));
+
         const decrypted = privateKey.decrypt(encrypted, 'RSA-OAEP', {
             md: forge.md.sha256.create()
         });
 
-        // Porównaj wiadomość przed i po procesie szyfrowania/odszyfrowania
+        // console.log('Decrypted message:', decrypted);
+
         return testMessage === decrypted;
     } catch (error) {
-        console.error('Nie poprawne hasło');
+        // console.error('Invalid RSAES-OAEP padding or other decryption error');
+        // console.error(error);
+
         return false;
     }
 };
 
 
 export const encryptPassword = (publicKeyPem: string, password: string): string => {
-    // Konwersja klucza publicznego PEM do obiektu
     const publicKey = forge.pki.publicKeyFromPem(publicKeyPem);
-
-    // Szyfrowanie hasła za pomocą klucza publicznego
     const encryptedPassword = publicKey.encrypt(password, 'RSA-OAEP', {
         md: forge.md.sha256.create(),
     });
-
-    // Zwracamy zaszyfrowane hasło zakodowane w base64
     return forge.util.encode64(encryptedPassword);
 };
 
+
+
 export const decryptPassword = (privateKeyPem: string, encryptedPasswordBase64: string): string => {
-    // Konwersja klucza prywatnego PEM do obiektu
     const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
-
-    // Dekodowanie zaszyfrowanego hasła z base64
     const encryptedPassword = forge.util.decode64(encryptedPasswordBase64);
-
-    // Odszyfrowanie hasła za pomocą klucza prywatnego
     const decryptedPassword = privateKey.decrypt(encryptedPassword, 'RSA-OAEP', {
         md: forge.md.sha256.create(),
     });
-
     return decryptedPassword;
 };
 
@@ -95,11 +83,10 @@ export const verifyMasterPassword = (masterPassword: string, publicKeyPem: strin
 
     const startTime = performance.now();
     const { privateKeyPem } = generateKeyPairFromString(masterPassword);
-    // console.log(privateKeyPem);
 
     const endTime = performance.now();
     if (!verifyKeyPair(publicKeyPem, privateKeyPem)) {
-        console.log("INCORRECT MASTER PASSWORD");
+        console.error("INCORRECT MASTER PASSWORD");
         return;
     }
     console.log(`Time taken to generate private PEM: ${endTime - startTime}ms`);
