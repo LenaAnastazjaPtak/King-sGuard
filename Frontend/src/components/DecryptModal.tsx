@@ -74,6 +74,7 @@ const DecryptModal = ({ password, handleDecryptPassword, isModalOpen, handleClos
                         error={error !== ""}
                         fullWidth
                         color='secondary'
+                        type='password'
                     />
                     <Button fullWidth
                         color='secondary' sx={{ outline: "1px solid purple" }} onClick={() => handleLocalDecrypt()}>Decrypt</Button>

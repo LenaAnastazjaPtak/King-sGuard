@@ -11,6 +11,7 @@ import { PasswordInterface } from "./interfaces";
 import PasswordGenerator from "./components/PasswordGenerator";
 import NewPasswordModal from "./components/NewPasswordModal";
 import DecryptModal from "./components/DecryptModal";
+import LogonComponent from "./components/LogonComponent";
 
 const PASSWORDS: PasswordInterface[] = [
   { id: 1, password: "r/OI1fe60CQX/mzj2pX0FYEKzppUFvfLZwZ6S7DoMMAF9r4JUZJF/Hu4t0yGdP0IxJIfTUJJ/QJyVCc9JPRl6ikUO2T7T5nBRlqffL1zSQN1NG3D11wu1bLOqZ2hdA57lwCSGtVfEXQsKl/4AQ+x+3ZOnSgirS+hFp9AZO7klsl1ZzkHbDaPyC3hwIzm7CfPArClZ2VWm/lZcvKWjsr9lWse9oJy2sQzRR3zcikmx8hoO27NtqTO/EpsDhWBUKNt", website: "youtube.com" },
@@ -82,6 +83,9 @@ const App = () => {
     setPasswordToDecrypt(password);
     setIsDecryptModalOpen(true);
   }
+
+  // return <LogonComponent />
+
 
   return <main style={{ width: "1000px" }}>
     {/* <PasswordGenerator setPassword={setPassword} password={password} /> */}

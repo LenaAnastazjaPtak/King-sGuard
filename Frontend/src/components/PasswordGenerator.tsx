@@ -91,7 +91,9 @@ const PasswordGenerator = ({ password, setPassword, width }: PasswordGeneratorPr
         </div>
       </div>
       <button onClick={generatePassword} style={{ marginTop: "1rem" }}>Generate Password</button>
-      {password && <p>Password: <strong>{password}</strong></p>}
+      {password && <p
+        style={{ wordBreak: "break-all" }}
+      >Password: <strong>{password}</strong></p>}
     </div>
   )
 }
