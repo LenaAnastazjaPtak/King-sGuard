@@ -1,5 +1,4 @@
-import zIndex from "@mui/material/styles/zIndex";
-import { borderRadius, boxSizing, fontWeight, lineHeight, textTransform } from "@mui/system";
+import { CSSProperties } from "react"
 
 type Props = {
     options: string[];
@@ -9,7 +8,7 @@ type Props = {
 
 const CustomSwitch = ({ options, selected, setSelected }: Props) => {
     const TAB_WIDTH = `calc((100% - ${1 * (options.length - 1)}rem) / ${options.length})`
-    const buttonStyle = {
+    const buttonStyle: CSSProperties = {
         width: TAB_WIDTH,
         backgroundColor: "transparent",
         border: "1px solid black",
@@ -25,7 +24,7 @@ const CustomSwitch = ({ options, selected, setSelected }: Props) => {
         userSelect: "none",
     }
 
-    const buttonSelectedStyle = {
+    const buttonSelectedStyle: CSSProperties = {
         color: "white",
         border: "1px solid transparent",
     }

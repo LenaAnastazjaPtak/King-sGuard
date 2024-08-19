@@ -3,6 +3,8 @@ import CustomSwitch from './CustomSwitch';
 // import ReCAPTCHA from 'react-google-recaptcha'
 
 import { Button, TextField, FormControl, Paper } from '@mui/material';
+import LoadingButton from "@mui/lab/LoadingButton";
+import { useNavigate } from 'react-router-dom';
 // type Props = {}
 
 interface ErrorInterface {
@@ -24,9 +26,18 @@ const LogonComponent = () => {
   const [passwordConfirmation, setPasswordConfirmation] = useState<string>("");
   const [selectedOption, setSelectedOption] = useState<string>("login");
   const [error, setError] = useState<ErrorInterface>(INITIAL_ERROR_STATE);
+  const [isProceedingRequest, setIsProceedingRequest] = useState<boolean>(false);
   const OPTIONS = ["login", "register"];
 
-  // console.log(import.meta.env.VITE_SITE_KEY)
+  const navigate = useNavigate()
+
+  const handleChangeSelectedOption = (option: string) => {
+    setSelectedOption(option)
+    setError(INITIAL_ERROR_STATE)
+    setUsername("")
+    setPassword("")
+    setPasswordConfirmation("")
+  }
 
   const handleChangeUsername = (value: string) => {
     setUsername(value);
@@ -45,14 +56,17 @@ const LogonComponent = () => {
 
   const handleLogin = () => {
     console.log("login")
-
+    setIsProceedingRequest(true)
     let newError = { ...error }
 
     if (username === "") newError.username = "Username Cannot Be Empty"
     if (password === "") newError.password = "Password Cannot Be Empty"
     setError(newError)
 
-    if (username === "" || password === "") return;
+    if (username === "" || password === "") {
+      setIsProceedingRequest(false)
+      return
+    };
 
     setError(INITIAL_ERROR_STATE);
     // const captchaValue = captchaRef.current?.getValue()
@@ -63,40 +77,48 @@ const LogonComponent = () => {
     // }
 
     console.log("login proceeded")
+    localStorage.setItem("isLoggedIn", "true")
+
+    // IMITATE REQUEST TO BACKEND
+
+    setTimeout(() => {
+      setIsProceedingRequest(false)
+      navigate("/")
+    }, 2000)
   }
 
   const handleRegister = () => {
     console.log("register")
+    setIsProceedingRequest(true)
+    const newError = { ...error }
 
-    if (username === "") {
-      setError({ ...error, username: "Username Cannot Be Empty" })
-    }
-
-    if (password === "") {
-      setError({ ...error, password: "Password Cannot Be Empty" })
-    }
-
-    if (passwordConfirmation === "") {
-      setError({ ...error, passwordConfirmation: "Password Confirmation Cannot Be Empty" })
-    }
-
-    if (password !== passwordConfirmation) {
-      setError({ ...error, passwordConfirmation: "Passwords Do Not Match" })
-    }
+    if (username === "") newError.username = "Username Cannot Be Empty"
+    if (password === "") newError.password = "Password Cannot Be Empty"
+    if (passwordConfirmation === "") newError.passwordConfirmation = "Password Confirmation Cannot Be Empty"
+    if (password !== passwordConfirmation) newError.passwordConfirmation = "Passwords Do Not Match"
+    setError(newError)
 
     if (username === "" || password === "" || passwordConfirmation === "" || password !== passwordConfirmation) {
+      setIsProceedingRequest(false)
       return;
     }
 
     setError(INITIAL_ERROR_STATE);
 
     console.log("register proceeded")
+
+    // IMITATE REQUEST TO BACKEND
+    setTimeout(() => {
+      setIsProceedingRequest(false)
+      handleChangeSelectedOption("login")
+
+    }, 2000)
   }
 
   return (
     <Paper sx={{ maxWidth: "500px", width: "450px", height: "450px", boxSizing: 'border-box' }}>
       <FormControl style={{ display: "flex", flexDirection: "column", gap: "1.5rem", padding: "2rem", height: "100%", boxSizing: 'border-box' }}>
-        <CustomSwitch options={OPTIONS} selected={selectedOption} setSelected={setSelectedOption} />
+        <CustomSwitch options={OPTIONS} selected={selectedOption} setSelected={handleChangeSelectedOption} />
         <TextField
           label="Username"
           placeholder='Your Username'
@@ -130,15 +152,22 @@ const LogonComponent = () => {
           onChange={(e) => handleChangePasswordConfirmation(e.target.value)}
         />}
         {/* <ReCAPTCHA sitekey={import.meta.env.VITE_SITE_KEY} ref={createRef} /> */}
-        <Button
+        {!isProceedingRequest ? <Button
           onClick={selectedOption === "login" ? handleLogin : handleRegister}
-          sx={{ marginTop: "auto" }}
+          sx={{ marginTop: "auto", height: "2.5rem" }}
           fullWidth
           variant="contained"
           color="secondary"
         >
           {selectedOption}
-        </Button>
+        </Button> : <LoadingButton
+          sx={{ marginTop: "auto", height: "2.5rem" }}
+          fullWidth
+          variant="contained"
+          color="secondary"
+          loading
+        />
+        }
       </FormControl>
 
     </Paper>
