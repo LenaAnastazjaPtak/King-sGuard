@@ -1,6 +1,6 @@
 import { createRef, useState } from 'react'
 import CustomSwitch from './CustomSwitch';
-// import ReCAPTCHA from 'react-google-recaptcha'
+import ReCAPTCHA from 'react-google-recaptcha'
 
 import { Button, TextField, FormControl, Paper } from '@mui/material';
 import LoadingButton from "@mui/lab/LoadingButton";
@@ -20,7 +20,7 @@ const INITIAL_ERROR_STATE: ErrorInterface = {
 }
 
 const LogonComponent = () => {
-  // const captchaRef = createRef<ReCAPTCHA>(null)
+  const captchaRef = createRef<ReCAPTCHA>(null)
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [passwordConfirmation, setPasswordConfirmation] = useState<string>("");
@@ -69,12 +69,13 @@ const LogonComponent = () => {
     };
 
     setError(INITIAL_ERROR_STATE);
-    // const captchaValue = captchaRef.current?.getValue()
-    // if (!captchaValue) {
-    //   console.error("Please complete the captcha")
-    //   console.error(captchaValue)
-    //   return
-    // }
+    const captchaValue = captchaRef.current?.getValue()
+    if (!captchaValue) {
+      console.error("Please complete the captcha")
+      console.error(captchaValue)
+      setIsProceedingRequest(false)
+      return
+    }
 
     console.log("login proceeded")
     localStorage.setItem("isLoggedIn", "true")
@@ -151,7 +152,7 @@ const LogonComponent = () => {
           helperText={error.passwordConfirmation}
           onChange={(e) => handleChangePasswordConfirmation(e.target.value)}
         />}
-        {/* <ReCAPTCHA sitekey={import.meta.env.VITE_SITE_KEY} ref={createRef} /> */}
+        <ReCAPTCHA sitekey={import.meta.env.VITE_SITE_KEY} ref={captchaRef} />
         {!isProceedingRequest ? <Button
           onClick={selectedOption === "login" ? handleLogin : handleRegister}
           sx={{ marginTop: "auto", height: "2.5rem" }}

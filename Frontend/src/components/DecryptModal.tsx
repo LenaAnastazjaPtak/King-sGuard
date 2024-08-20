@@ -77,7 +77,12 @@ const DecryptModal = ({ password, handleDecryptPassword, isModalOpen, handleClos
                         type='password'
                     />
                     <Button fullWidth
-                        color='secondary' sx={{ outline: "1px solid purple" }} onClick={() => handleLocalDecrypt()}>Decrypt</Button>
+                        color='secondary'
+                        onClick={() => handleLocalDecrypt()}
+                        variant='contained'
+                    >
+                        Decrypt
+                    </Button>
                     {decryptedPassword !== "" &&
                         <div style={{ textAlign: "center" }}>
                             <p>Your Decrypted Password:</p>

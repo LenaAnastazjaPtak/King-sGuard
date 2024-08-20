@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import Slider from '@mui/material/Slider';
-import { Checkbox, FormControlLabel } from '@mui/material';
+import { Button, Checkbox, FormControlLabel } from '@mui/material';
 
 const alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 const digits = '0123456789'
@@ -90,7 +90,7 @@ const PasswordGenerator = ({ password, setPassword, width }: PasswordGeneratorPr
           </div>
         </div>
       </div>
-      <button onClick={generatePassword} style={{ marginTop: "1rem" }}>Generate Password</button>
+      <Button onClick={generatePassword} style={{ marginTop: "1rem" }} fullWidth variant='contained' color='secondary'>Generate Password</Button>
       {password && <p
         style={{ wordBreak: "break-all" }}
       >Password: <strong>{password}</strong></p>}

@@ -33,9 +33,11 @@ const DashboardPage = () => {
         const encryptedPassword = encryptPassword(PUBLIC_KEY_PEM, password);
         const newId = PASSWORDS[PASSWORDS.length - 1].id + 1;
         const newPasswords = [...PASSWORDS, { id: newId, password: encryptedPassword, website }];
-        PASSWORDS.push({ id: newId, password, website });
+        PASSWORDS.push({ id: newId, password: encryptedPassword, website });
         setFilteredPasswords(newPasswords);
         setIsAddPasswordModalOpen(false);
+
+        //request to backend to save password
     }
 
 
@@ -115,7 +117,15 @@ const DashboardPage = () => {
                                     textOverflow: "ellipsis",
                                     maxWidth: '500px'
                                 }}>{row.password}</p></TableCell>
-                                <TableCell align="center"><button onClick={() => handleDecryptPasswordButton(row.password)}>DECRYPT</button></TableCell>
+                                <TableCell align="center">
+                                    <Button
+                                        onClick={() => handleDecryptPasswordButton(row.password)}
+                                        variant="contained"
+                                        color="secondary"
+                                    >
+                                        DECRYPT
+                                    </Button>
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

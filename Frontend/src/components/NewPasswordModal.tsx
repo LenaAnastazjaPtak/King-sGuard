@@ -75,13 +75,13 @@ const NewPasswordModal = ({ isModalOpen, handleClose, handleSave }: Props) => {
             >
                 <Box sx={style}>
                     <TextField
-                        id="outlined-error-helper-text"
                         label="Website"
                         placeholder='Your Website'
                         helperText={websiteError}
                         value={website}
                         onChange={(e) => handleChangeWebsite(e.target.value)}
                         error={websiteError !== ""}
+                        color="secondary"
                     />
                     <CustomSwitch
                         options={["Your Password", "Generated Password"]}
@@ -90,21 +90,22 @@ const NewPasswordModal = ({ isModalOpen, handleClose, handleSave }: Props) => {
                     />
                     {passwordSource === "Your Password" ?
                         <TextField
-                            id="outlined-error-helper-text"
                             label="Password"
                             placeholder='Your Password'
                             helperText={passwordError}
                             value={password}
                             onChange={(e) => handleChangePassword(e.target.value)}
                             error={passwordError !== ""}
+                            type="password"
+                            color="secondary"
                         /> :
                         <PasswordGenerator setPassword={setPassword} password={password} width="100%" />
                     }
-                    <Button onClick={handleAddNewPassword}>Add New Password</Button>
+                    <Button onClick={handleAddNewPassword} color="secondary" variant="contained">Add New Password</Button>
                 </Box>
 
             </Modal>
-        </div>
+        </div >
     )
 }
 
