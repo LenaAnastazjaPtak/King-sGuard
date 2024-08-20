@@ -1,0 +1,105 @@
+controllers:
+    resource:
+        path: ../src/Controller/
+        namespace: App\Controller
+    type: attribute
+
+login:
+    path: /login
+    controller: App\Controller\UserController::login
+
+# USERS
+api_users_index:
+    path: /api/users
+    controller: App\Controller\UserController::index
+    methods: GET
+
+api_users_show:
+    path: /api/users/{id}
+    controller: App\Controller\UserController::show
+    methods: GET
+    requirements:
+        id: '\d+'
+
+api_users_create:
+    path: /api/users
+    controller: App\Controller\UserController::create
+    methods: POST
+
+api_users_update:
+    path: /api/users/{id}
+    controller: App\Controller\UserController::update
+    methods: PUT
+    requirements:
+        id: '\d+'
+
+api_users_delete:
+    path: /api/users/{id}
+    controller: App\Controller\UserController::delete
+    methods: DELETE
+    requirements:
+        id: '\d+'
+
+# CREDENTIALS
+api_credentials_index:
+    path: /api/credentials
+    controller: App\Controller\CredentialsController::index
+    methods: GET
+
+api_credentials_show:
+    path: /api/credentials/{id}
+    controller: App\Controller\CredentialsController::show
+    methods: GET
+    requirements:
+        id: '\d+'
+
+api_credentials_create:
+    path: /api/credentials
+    controller: App\Controller\CredentialsController::create
+    methods: POST
+
+api_credentials_update:
+    path: /api/credentials/{id}
+    controller: App\Controller\CredentialsController::update
+    methods: PUT
+    requirements:
+        id: '\d+'
+
+api_credentials_delete:
+    path: /api/credentials/{id}
+    controller: App\Controller\CredentialsController::delete
+    methods: DELETE
+    requirements:
+        id: '\d+'
+
+# GROUP
+api_groups_index:
+    path: /api/groups
+    controller: App\Controller\GroupController::index
+    methods: GET
+
+api_groups_show:
+    path: /api/groups/{id}
+    controller: App\Controller\GroupController::show
+    methods: GET
+    requirements:
+        id: '\d+'
+
+api_groups_create:
+    path: /api/groups
+    controller: App\Controller\GroupController::create
+    methods: POST
+
+api_groups_update:
+    path: /api/groups/{id}
+    controller: App\Controller\GroupController::update
+    methods: PUT
+    requirements:
+        id: '\d+'
+
+api_groups_delete:
+    path: /api/groups/{id}
+    controller: App\Controller\GroupController::delete
+    methods: DELETE
+    requirements:
+        id: '\d+'
