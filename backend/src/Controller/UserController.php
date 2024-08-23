@@ -41,9 +41,9 @@ class UserController extends AbstractController
         return $this->crudService->index(User::class);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(string $email): JsonResponse
     {
-        return $this->crudService->show(User::class, $id);
+        return $this->crudService->show(User::class, $email);
     }
 
     public function create(Request $request): JsonResponse
@@ -61,5 +61,10 @@ class UserController extends AbstractController
     public function delete(int $id): JsonResponse
     {
         return $this->crudService->delete(User::class, $id);
+    }
+
+    public function getSaltByUser(string $email): JsonResponse
+    {
+        return $this->crudService->salt(User::class, $email);
     }
 }
