@@ -6,23 +6,30 @@ import { Button, TextField, FormControl, Paper } from "@mui/material";
 import LoadingButton from "@mui/lab/LoadingButton";
 import { useNavigate } from "react-router-dom";
 
-import { isEmailValid, SALT } from "../utils";
+import { isEmailValid, PUBLIC_KEY_PEM, SALT } from "../utils";
+
+import {
+  loginUserRequest,
+  registerUserRequest,
+} from "../services/api/userRequest";
 
 import "./tmp.css";
-import axios from "axios";
 import { generateSalt, hashPasswordWithSalt } from "../crypt";
+import { saltRequest } from "../services/api/saltRequest";
 // type Props = {}
 
 interface ErrorInterface {
   email: string;
   password: string;
   passwordConfirmation: string;
+  captcha: string;
 }
 
 const INITIAL_ERROR_STATE: ErrorInterface = {
   email: "",
   password: "",
   passwordConfirmation: "",
+  captcha: "",
 };
 
 const LogonComponent = () => {
@@ -38,16 +45,6 @@ const LogonComponent = () => {
   const OPTIONS = ["login", "register"];
 
   const navigate = useNavigate();
-
-  const registerUserRequest = async (hashedPassword: string, salt: string) => {
-    const response = await axios.post("http://localhost:8000/api/users", {
-      email,
-      password,
-      salt,
-    });
-
-    return response.data;
-  };
 
   const handleChangeSelectedOption = (option: string) => {
     setSelectedOption(option);
@@ -82,93 +79,119 @@ const LogonComponent = () => {
     });
   };
 
-  const handleLogin = () => {
-    console.log("login");
-    setIsProceedingRequest(true);
-    let newError = { ...error };
-    const captchaValue = captchaRef.current?.getValue();
+  const handleLogin = async () => {
+    try {
+      console.log("login");
+      setIsProceedingRequest(true);
+      let newError = { ...error };
+      // const captchaValue = captchaRef.current?.getValue();
+      const captchaValue = true;
 
-    if (email === "") newError.email = "Email Cannot Be Empty";
-    if (password === "") newError.password = "Password Cannot Be Empty";
+      if (email === "") newError.email = "Email Cannot Be Empty";
+      if (password === "") newError.password = "Password Cannot Be Empty";
 
-    setError(newError);
+      setError(newError);
 
-    if (!captchaValue) {
-      console.error("Please complete the captcha");
-      console.error(captchaValue);
-    }
+      if (!captchaValue) {
+        console.error("Please complete the captcha");
+        console.error(captchaValue);
+      }
 
-    if (email === "" || password === "" || !captchaValue) {
+      if (email === "" || password === "" || !captchaValue) throw new Error();
+
+      setError(INITIAL_ERROR_STATE);
+
+      const saltResponse = await saltRequest(email);
+      console.log(saltResponse);
+
+      if (!saltResponse) throw new Error("SALT REQUEST FAILED");
+
+      console.log("SALT REQUEST DONE");
+
+      const hashedPassword = hashPasswordWithSalt(password, saltResponse.salt);
+      const loginRequestResponse = await loginUserRequest(
+        email,
+        hashedPassword
+      );
+
+      console.log(loginRequestResponse);
+
+      if (loginRequestResponse) {
+        console.log("LOGIN SUCCESS");
+        navigate("/home");
+        return;
+      }
+
+      throw new Error("LOGIN FAILED");
+    } catch (e) {
+      console.error(e);
       setIsProceedingRequest(false);
-      return;
     }
-
-    setError(INITIAL_ERROR_STATE);
-
-    const hashedPassword = hashPasswordWithSalt(password, SALT);
-    console.log(password, hashedPassword);
-
-    // TODO
-    // getSaltRequest
-    // hashPasswordWithSalt
-    // loginRequest
-    // navigate
-
-    setTimeout(() => {
-      setIsProceedingRequest(false);
-      localStorage.setItem("isLoggedIn", "true");
-      navigate("/");
-      console.log("login proceeded");
-    }, 2000);
   };
 
-  const handleRegister = () => {
-    console.log("register");
-    setIsProceedingRequest(true);
-    const newError = { ...error };
-    const isEmailValidTested = isEmailValid(email);
-    const captchaValue = captchaRef.current?.getValue();
+  const handleRegister = async () => {
+    try {
+      console.log("register");
+      setIsProceedingRequest(true);
+      const newError = { ...error };
+      const isEmailValidTested = isEmailValid(email);
+      // const captchaValue = captchaRef.current?.getValue();
+      const captchaValue = true;
 
-    if (email === "") newError.email = "Email Cannot Be Empty";
-    else if (!isEmailValidTested) newError.email = "Invalid Email Format";
+      if (email === "") newError.email = "Email Cannot Be Empty";
+      else if (!isEmailValidTested) newError.email = "Invalid Email Format";
 
-    if (password === "") newError.password = "Password Cannot Be Empty";
+      if (password === "") newError.password = "Password Cannot Be Empty";
 
-    if (passwordConfirmation === "")
-      newError.passwordConfirmation = "Password Confirmation Cannot Be Empty";
+      if (passwordConfirmation === "")
+        newError.passwordConfirmation = "Password Confirmation Cannot Be Empty";
 
-    if (password !== passwordConfirmation)
-      newError.passwordConfirmation = "Passwords Do Not Match";
+      if (password !== passwordConfirmation)
+        newError.passwordConfirmation = "Passwords Do Not Match";
 
-    setError(newError);
+      setError(newError);
 
-    if (!captchaValue) {
-      console.error("Please complete the captcha");
-      console.error(captchaValue);
-    }
+      if (!captchaValue) {
+        console.error("Please complete the captcha");
+        console.error(captchaValue);
+      }
 
-    if (
-      email === "" ||
-      !isEmailValidTested ||
-      password === "" ||
-      passwordConfirmation === "" ||
-      password !== passwordConfirmation ||
-      !captchaValue
-    ) {
+      if (
+        email === "" ||
+        !isEmailValidTested ||
+        password === "" ||
+        passwordConfirmation === "" ||
+        password !== passwordConfirmation ||
+        !captchaValue
+      )
+        throw new Error();
+
+      setError(INITIAL_ERROR_STATE);
+
+      console.log("register error checking done");
+
+      const salt = generateSalt();
+      const hashedPassword = hashPasswordWithSalt(password, salt);
+
+      const registerRequestResponse = await registerUserRequest(
+        email,
+        hashedPassword,
+        salt,
+        PUBLIC_KEY_PEM
+      );
+      console.log(registerRequestResponse);
+
+      if (registerRequestResponse) {
+        console.log("REGISTER SUCCESS");
+        navigate("/home");
+        return;
+      }
+
+      throw new Error("REGISTER FAILED");
+    } catch (e) {
+      console.error(e);
       setIsProceedingRequest(false);
-      return;
     }
-
-    setError(INITIAL_ERROR_STATE);
-
-    console.log("register error checking done");
-
-    const salt = generateSalt();
-    const hashedPassword = hashPasswordWithSalt(password, salt);
-    const registerRequestResponse = registerUserRequest(hashedPassword, salt);
-    console.log(registerRequestResponse);
-
-    console.log("REGISTER REQUEST DONE");
   };
 
   return (
@@ -229,11 +252,11 @@ const LogonComponent = () => {
             onChange={(e) => handleChangePasswordConfirmation(e.target.value)}
           />
         )}
-        <ReCAPTCHA
+        {/* <ReCAPTCHA
           sitekey={import.meta.env.VITE_SITE_KEY}
           ref={captchaRef}
           isolated={true}
-        />
+        /> */}
         {!isProceedingRequest ? (
           <Button
             onClick={selectedOption === "login" ? handleLogin : handleRegister}
