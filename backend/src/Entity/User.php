@@ -30,6 +30,12 @@ class User implements UserInterface
     #[ORM\Column(length: 510)]
     private ?string $publicKey = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $language = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $salt = null;
+
     public function __toString()
     {
         return $this->email;
@@ -115,6 +121,30 @@ class User implements UserInterface
     public function setPublicKey(string $publicKey): static
     {
         $this->publicKey = $publicKey;
+
+        return $this;
+    }
+
+    public function getLanguage(): ?string
+    {
+        return $this->language;
+    }
+
+    public function setLanguage(?string $language): static
+    {
+        $this->language = $language;
+
+        return $this;
+    }
+
+    public function getSalt(): ?string
+    {
+        return $this->salt;
+    }
+
+    public function setSalt(string $salt): static
+    {
+        $this->salt = $salt;
 
         return $this;
     }
