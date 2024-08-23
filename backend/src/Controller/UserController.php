@@ -41,9 +41,10 @@ class UserController extends AbstractController
         return $this->crudService->index(User::class);
     }
 
-    public function show(string $email): JsonResponse
+    public function show(Request $request): JsonResponse
     {
-        return $this->crudService->show(User::class, $email);
+        $data = $request->getContent();
+        return $this->crudService->show(User::class, $data);
     }
 
     public function create(Request $request): JsonResponse
@@ -52,10 +53,10 @@ class UserController extends AbstractController
         return $this->crudService->create(User::class, $data);
     }
 
-    public function update(int $id, Request $request): JsonResponse
+    public function update(Request $request): JsonResponse
     {
         $data = $request->getContent();
-        return $this->crudService->update(User::class, $id, $data);
+        return $this->crudService->update(User::class, $data);
     }
 
     public function delete(int $id): JsonResponse
@@ -63,8 +64,9 @@ class UserController extends AbstractController
         return $this->crudService->delete(User::class, $id);
     }
 
-    public function getSaltByUser(string $email): JsonResponse
+    public function getSaltByUser(Request $request): JsonResponse
     {
-        return $this->crudService->salt(User::class, $email);
+        $data = $request->getContent();
+        return $this->crudService->salt(User::class, $data);
     }
 }
