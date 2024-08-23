@@ -7,6 +7,7 @@ controllers:
 login:
     path: /login
     controller: App\Controller\UserController::login
+    methods: POST
 
 # USERS
 api_users_index:
@@ -15,7 +16,7 @@ api_users_index:
     methods: GET
 
 api_users_show:
-    path: /api/users/{id}
+    path: /api/users/{email}
     controller: App\Controller\UserController::show
     methods: GET
     requirements:
@@ -37,6 +38,13 @@ api_users_delete:
     path: /api/users/{id}
     controller: App\Controller\UserController::delete
     methods: DELETE
+    requirements:
+        id: '\d+'
+
+api_users_salt:
+    path: /api/salt/{email}
+    controller: App\Controller\UserController::getSaltByUser
+    methods: GET
     requirements:
         id: '\d+'
 

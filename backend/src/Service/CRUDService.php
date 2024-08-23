@@ -26,9 +26,9 @@ class CRUDService
         return new JsonResponse($entities);
     }
 
-    public function show(string $entityClass, int $id): JsonResponse
+    public function show(string $entityClass, string $email): JsonResponse
     {
-        $entity = $this->entityManager->getRepository($entityClass)->find($id);
+        $entity = $this->entityManager->getRepository($entityClass)->findOneBy(['email' => $email]);
 
         if (!$entity) {
             return new JsonResponse(['message' => "{$entityClass} not found"], JsonResponse::HTTP_NOT_FOUND);
@@ -87,5 +87,20 @@ class CRUDService
         $this->entityManager->flush();
 
         return new JsonResponse(['message' => "{$entityClass} deleted"], JsonResponse::HTTP_NO_CONTENT);
+    }
+
+    public function salt(string $entityClass, string $email): JsonResponse
+    {
+        if (!$email or $email == '') {
+            return new JsonResponse(['message' => "Please provide user's email."], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        $entity = $this->entityManager->getRepository($entityClass)->findOneBy(['email' => $email]);
+
+        if (!$entity) {
+            return new JsonResponse(['message' => "User with email {$email} not found"], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        return new JsonResponse(['salt' => $entity->getSalt()], JsonResponse::HTTP_OK);
     }
 }
