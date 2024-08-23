@@ -1,12 +1,12 @@
-import LogonComponent from '../components/LogonComponent'
+import LogonComponent from "../components/LogonComponent";
 
 const LogonPage = () => {
-    return (
-        <main>
-            <h1>LOGON PAGE</h1>
-            <LogonComponent />
-        </main>
-    )
-}
+  return (
+    <main>
+      <h1>LOGON PAGE</h1>
+      <LogonComponent />
+    </main>
+  );
+};
 
-export default LogonPage
+export default LogonPage;
