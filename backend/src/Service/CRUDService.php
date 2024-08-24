@@ -45,14 +45,14 @@ class CRUDService
                 return new JsonResponse(['message' => "User with email {$email} not found", 'code' => 404], JsonResponse::HTTP_NOT_FOUND);
             }
         } else {
-            if (!isset($data['id'])) {
-                return new JsonResponse(['message' => 'Id is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+            if (!isset($data['title'])) {
+                return new JsonResponse(['message' => 'Title is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
             }
 
-            $entity = $this->entityManager->getRepository($entityClass)->find($data['id']);
+            $entity = $this->entityManager->getRepository($entityClass)->findOneBy(['title' => $data['title']]);
 
             if (!$entity) {
-                return new JsonResponse(['message' => "Entity with id {$data['id']} not found", 'code' => 404], JsonResponse::HTTP_NOT_FOUND);
+                return new JsonResponse(['message' => "Entity with title {$data['title']} not found", 'code' => 404], JsonResponse::HTTP_NOT_FOUND);
             }
         }
 
@@ -61,94 +61,36 @@ class CRUDService
         return new JsonResponse(['entity' => json_decode($jsonEntity), 'code' => 200], JsonResponse::HTTP_OK);
     }
 
-    public function create(string $entityClass, string $data): JsonResponse
+    public function create(string $entityClass, string $data, $user = null): JsonResponse
     {
-        if ($entityClass == User::class) {
-            $dataJson = json_decode($data, true);
-
-            if (!isset($dataJson['email'])) {
-                return new JsonResponse(['message' => 'Email is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
-            }
-            if (!isset($dataJson['roles'])) {
-                return new JsonResponse(['message' => 'Roles is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
-            }
-            if (!isset($dataJson['password'])) {
-                return new JsonResponse(['message' => 'Password is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
-            }
-            if (!isset($dataJson['public_key'])) {
-                return new JsonResponse(['message' => 'Public key is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
-            }
-            if (!isset($dataJson['salt'])) {
-                return new JsonResponse(['message' => 'Salt is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
-            }
-
-            $entity = $this->entityManager->getRepository($entityClass)->findOneBy(['email' => $dataJson['email']]);
-
-            if ($entity) {
-                return new JsonResponse(['message' => "User with mail {$dataJson['email']} already exists.", 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
-            }
-        }
-
         $entity = $this->serializer->deserialize($data, $entityClass, 'json');
 
         if ($entityClass == Credentials::class) {
-            $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $entity->getUsername()]);
-
-            if (!$user) {
-                return new JsonResponse(['message' => "User not found"], JsonResponse::HTTP_NOT_FOUND);
-            }
+            $entity->setUser($user);
 
             $this->entityManager->persist($entity);
             $this->entityManager->flush();
 
-            return new JsonResponse(['message' => "{$entity} created.", 'publicKey' => $user->getPublicKey()], JsonResponse::HTTP_CREATED);
+            return new JsonResponse(['message' => "Credentials created.", 'publicKey' => $user->getPublicKey(), 'code' => 201], JsonResponse::HTTP_CREATED);
         }
-
 
         $this->entityManager->persist($entity);
         $this->entityManager->flush();
 
         $jsonEntity = $this->serializer->serialize($entity, 'json');
-        return new JsonResponse(['message' => "{$entity} created.", 'entity' => json_decode($jsonEntity), 'code' => 200], JsonResponse::HTTP_CREATED);
+        return new JsonResponse(['message' => "{$entity} created.", 'entity' => json_decode($jsonEntity), 'code' => 201], JsonResponse::HTTP_CREATED);
     }
 
-    public function update(string $entityClass, string $data): JsonResponse
+    public function update(string $entityClass, string $data, $entity): JsonResponse
     {
-        $dataJson = json_decode($data, true);
-
-        if ($entityClass == User::class) {
-            if (!isset($dataJson['email'])) {
-                return new JsonResponse(['message' => 'Email is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
-            }
-            if (!isset($dataJson['password'])) {
-                return new JsonResponse(['message' => 'Password is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
-            }
-            $email = $dataJson['email'];
-
-            $entity = $this->entityManager->getRepository($entityClass)->findOneBy(['email' => $email]);
-
-            if (!$entity) {
-                return new JsonResponse(['message' => "User with email {$email} not found", 'code' => 404], JsonResponse::HTTP_NOT_FOUND);
-            }
-        } else {
-            $entity = $this->entityManager->getRepository($entityClass)->find($dataJson['id']);
-
-            if (!$entity) {
-                return new JsonResponse(['message' => "{$entityClass} not found"], JsonResponse::HTTP_NOT_FOUND);
-            }
-        }
-
         $this->serializer->deserialize($data, $entityClass, 'json', [AbstractNormalizer::OBJECT_TO_POPULATE => $entity]);
         $this->entityManager->flush();
 
-        $jsonEntity = $this->serializer->serialize($entity, 'json');
-        return new JsonResponse(['message' => "{$entity} updated.", 'entity' => json_decode($jsonEntity), 'code' => 200], JsonResponse::HTTP_CREATED);
+        return new JsonResponse(['message' => "{$entity} updated.", 'code' => 200], JsonResponse::HTTP_CREATED);
     }
 
-    public function delete(string $entityClass, int $id): JsonResponse
+    public function delete(string $entityClass, $entity): JsonResponse
     {
-        $entity = $this->entityManager->getRepository($entityClass)->find($id);
-
         if (!$entity) {
             return new JsonResponse(['message' => "{$entityClass} not found"], JsonResponse::HTTP_NOT_FOUND);
         }
@@ -156,7 +98,7 @@ class CRUDService
         $this->entityManager->remove($entity);
         $this->entityManager->flush();
 
-        return new JsonResponse(['message' => "{$entityClass} deleted"], JsonResponse::HTTP_NO_CONTENT);
+        return new JsonResponse(['message' => "{$entity} deleted", 'code' => 200], JsonResponse::HTTP_OK);
     }
 
     public function salt(string $entityClass, string $data): JsonResponse
