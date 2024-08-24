@@ -6,8 +6,8 @@ import { Button, TextField, FormControl, Paper } from "@mui/material";
 import LoadingButton from "@mui/lab/LoadingButton";
 import { useNavigate } from "react-router-dom";
 
-import { isEmailValid, PUBLIC_KEY_PEM, SALT } from "../utils";
-
+import { isEmailValid, PUBLIC_KEY_PEM } from "../utils";
+import { useSnackbar } from "../context/SnackbarContext";
 import {
   loginUserRequest,
   registerUserRequest,
@@ -33,8 +33,7 @@ const INITIAL_ERROR_STATE: ErrorInterface = {
 };
 
 const LogonComponent = () => {
-  // ignore the type error
-  const captchaRef = createRef<ReCAPTCHA>();
+  // const captchaRef = createRef<ReCAPTCHA>();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [passwordConfirmation, setPasswordConfirmation] = useState<string>("");
@@ -43,6 +42,7 @@ const LogonComponent = () => {
   const [isProceedingRequest, setIsProceedingRequest] =
     useState<boolean>(false);
   const OPTIONS = ["login", "register"];
+  const { openSnackbar } = useSnackbar();
 
   const navigate = useNavigate();
 
@@ -194,6 +194,12 @@ const LogonComponent = () => {
     }
   };
 
+  const handleSubmit = () => {
+    // if (selectedOption === "login") handleLogin();
+    // else handleRegister();
+    openSnackbar("This is a test message", "success");
+  };
+
   return (
     <Paper
       sx={{
@@ -238,6 +244,7 @@ const LogonComponent = () => {
           helperText={error.password}
           color="secondary"
           onChange={(e) => handleChangePassword(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
         />
         {selectedOption === "register" && (
           <TextField
@@ -250,6 +257,7 @@ const LogonComponent = () => {
             value={passwordConfirmation}
             helperText={error.passwordConfirmation}
             onChange={(e) => handleChangePasswordConfirmation(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
           />
         )}
         {/* <ReCAPTCHA
@@ -259,7 +267,7 @@ const LogonComponent = () => {
         /> */}
         {!isProceedingRequest ? (
           <Button
-            onClick={selectedOption === "login" ? handleLogin : handleRegister}
+            onClick={handleSubmit}
             sx={{ marginTop: "auto", height: "2.5rem" }}
             fullWidth
             variant="contained"
