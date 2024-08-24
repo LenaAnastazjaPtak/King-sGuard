@@ -6,7 +6,7 @@ export const registerUserRequest = async (
   salt: string,
   publicKey: string
 ) => {
-  const response = await axios.post("http://localhost:8000/api/users", {
+  const response = await axios.post("http://localhost:8000/api/users/create", {
     email: email,
     password: password,
     salt: salt,
@@ -18,7 +18,7 @@ export const registerUserRequest = async (
 };
 
 export const loginUserRequest = async (email: string, password: string) => {
-  const response = await axios.post("https://localhost:8000/api/login", {
+  const response = await axios.post("http://localhost:8000/login", {
     email: email,
     password: password,
   });
