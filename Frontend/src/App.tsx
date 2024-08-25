@@ -4,11 +4,11 @@ import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import DashboardPage from "./pages/DashboardPage";
 import NotFound from "./pages/NotFound";
 import { Snackbar } from "@mui/material";
-import { SnackbarProvider } from "./context/SnackbarContext";
+import { SnackbarProvider } from "notistack";
 
 const App = () => {
   return (
-    <SnackbarProvider>
+    <SnackbarProvider maxSnack={3}>
       <Router>
         <Routes>
           <Route path="/logon" element={<LogonComponent />} />
