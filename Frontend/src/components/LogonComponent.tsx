@@ -1,13 +1,13 @@
-import { createRef, useState } from "react";
+import { createRef, useEffect, useState } from "react";
 import CustomSwitch from "./CustomSwitch";
 import ReCAPTCHA from "react-google-recaptcha";
+import Cookies from "js-cookie";
 
 import { Button, TextField, FormControl, Paper } from "@mui/material";
 import LoadingButton from "@mui/lab/LoadingButton";
 import { useNavigate } from "react-router-dom";
 
 import { isEmailValid, PUBLIC_KEY_PEM } from "../utils";
-import { useSnackbar } from "../context/SnackbarContext";
 import {
   loginUserRequest,
   registerUserRequest,
@@ -16,6 +16,9 @@ import {
 import "./tmp.css";
 import { generateSalt, hashPasswordWithSalt } from "../crypt";
 import { saltRequest } from "../services/api/saltRequest";
+// import { useSnackbar, VariantType } from "notistack";
+
+import useSnackbarHook from "../hooks/useSnackbar";
 // type Props = {}
 
 interface ErrorInterface {
@@ -42,7 +45,8 @@ const LogonComponent = () => {
   const [isProceedingRequest, setIsProceedingRequest] =
     useState<boolean>(false);
   const OPTIONS = ["login", "register"];
-  const { openSnackbar } = useSnackbar();
+  // const { enqueueSnackbar } = useSnackbar();
+  const { snackbarError, snackbarSuccess } = useSnackbarHook();
 
   const navigate = useNavigate();
 
@@ -79,126 +83,157 @@ const LogonComponent = () => {
     });
   };
 
+  const handleValidateLogin = (): boolean => {
+    const newError = { ...error };
+    const captchaValue = true;
+
+    if (email === "") newError.email = "Email Cannot Be Empty";
+    if (!isEmailValid(email)) newError.email = "Invalid Email Format";
+    if (password === "") newError.password = "Password Cannot Be Empty";
+    if (!captchaValue) newError.captcha = "Please complete the captcha";
+    setError(newError);
+
+    if (!isEmailValid(email)) {
+      snackbarError("Invalid email format");
+      return false;
+    }
+
+    if (email === "" || password === "") {
+      snackbarError("Please fill all fields");
+      return false;
+    }
+
+    if (!captchaValue) {
+      snackbarError("Please complete the captcha");
+      return false;
+    }
+
+    setError(INITIAL_ERROR_STATE);
+
+    return true;
+  };
+
+  const handleValidateRegister = (): boolean => {
+    const newError = { ...error };
+    const isEmailValidTested = isEmailValid(email);
+    // const captchaValue = captchaRef.current?.getValue();
+    const captchaValue = true;
+
+    if (email === "") newError.email = "Email Cannot Be Empty";
+    else if (!isEmailValidTested) newError.email = "Invalid Email Format";
+
+    if (password === "") newError.password = "Password Cannot Be Empty";
+
+    if (passwordConfirmation === "")
+      newError.passwordConfirmation = "Password Confirmation Cannot Be Empty";
+
+    if (password !== passwordConfirmation)
+      newError.passwordConfirmation = "Passwords Do Not Match";
+
+    setError(newError);
+
+    if (!captchaValue) {
+      console.error("Please complete the captcha");
+      console.error(captchaValue);
+    }
+
+    if (email === "" || password === "" || passwordConfirmation === "") {
+      snackbarError("Please fill all fields");
+      return false;
+    }
+
+    if (!isEmailValidTested) {
+      snackbarError("Invalid email format");
+      return false;
+    }
+
+    if (password !== passwordConfirmation) {
+      snackbarError("Passwords do not match");
+      return false;
+    }
+
+    if (!captchaValue) {
+      snackbarError("Please complete the captcha");
+      return false;
+    }
+
+    setError(INITIAL_ERROR_STATE);
+    return true;
+  };
+
   const handleLogin = async () => {
-    try {
-      console.log("login");
-      setIsProceedingRequest(true);
-      let newError = { ...error };
-      // const captchaValue = captchaRef.current?.getValue();
-      const captchaValue = true;
+    if (!handleValidateLogin()) return;
 
-      if (email === "") newError.email = "Email Cannot Be Empty";
-      if (password === "") newError.password = "Password Cannot Be Empty";
+    const saltResponse = await saltRequest(email);
+    if (saltResponse.code === 404) {
+      snackbarError("Incorrect email or password");
+      return;
+    }
 
-      setError(newError);
+    const hashedPassword = hashPasswordWithSalt(password, saltResponse.salt);
+    const loginRequestResponse = await loginUserRequest(email, hashedPassword);
 
-      if (!captchaValue) {
-        console.error("Please complete the captcha");
-        console.error(captchaValue);
-      }
+    if (loginRequestResponse.code === 401) {
+      snackbarError("Incorrect email or password");
+      return;
+    }
 
-      if (email === "" || password === "" || !captchaValue) throw new Error();
-
-      setError(INITIAL_ERROR_STATE);
-
-      const saltResponse = await saltRequest(email);
-      console.log(saltResponse);
-
-      if (!saltResponse) throw new Error("SALT REQUEST FAILED");
-
-      console.log("SALT REQUEST DONE");
-
-      const hashedPassword = hashPasswordWithSalt(password, saltResponse.salt);
-      const loginRequestResponse = await loginUserRequest(
-        email,
-        hashedPassword
-      );
-
+    if (loginRequestResponse.code === 200) {
       console.log(loginRequestResponse);
-
-      if (loginRequestResponse) {
-        console.log("LOGIN SUCCESS");
-        navigate("/home");
-        return;
-      }
-
-      throw new Error("LOGIN FAILED");
-    } catch (e) {
-      console.error(e);
-      setIsProceedingRequest(false);
+      snackbarSuccess("Login Success");
+      Cookies.set("publicKeyPem", loginRequestResponse.publicKey, {
+        expires: 1,
+      });
+      navigate("/");
     }
   };
 
   const handleRegister = async () => {
-    try {
-      console.log("register");
-      setIsProceedingRequest(true);
-      const newError = { ...error };
-      const isEmailValidTested = isEmailValid(email);
-      // const captchaValue = captchaRef.current?.getValue();
-      const captchaValue = true;
+    handleValidateRegister();
 
-      if (email === "") newError.email = "Email Cannot Be Empty";
-      else if (!isEmailValidTested) newError.email = "Invalid Email Format";
+    const salt = generateSalt();
+    const hashedPassword = hashPasswordWithSalt(password, salt);
 
-      if (password === "") newError.password = "Password Cannot Be Empty";
+    const registerRequestResponse = await registerUserRequest(
+      email,
+      hashedPassword,
+      salt,
+      PUBLIC_KEY_PEM
+    );
 
-      if (passwordConfirmation === "")
-        newError.passwordConfirmation = "Password Confirmation Cannot Be Empty";
+    if (registerRequestResponse.code === 400) {
+      snackbarError(registerRequestResponse.message);
+      return;
+    }
 
-      if (password !== passwordConfirmation)
-        newError.passwordConfirmation = "Passwords Do Not Match";
+    console.log(registerRequestResponse);
 
-      setError(newError);
-
-      if (!captchaValue) {
-        console.error("Please complete the captcha");
-        console.error(captchaValue);
-      }
-
-      if (
-        email === "" ||
-        !isEmailValidTested ||
-        password === "" ||
-        passwordConfirmation === "" ||
-        password !== passwordConfirmation ||
-        !captchaValue
-      )
-        throw new Error();
-
-      setError(INITIAL_ERROR_STATE);
-
-      console.log("register error checking done");
-
-      const salt = generateSalt();
-      const hashedPassword = hashPasswordWithSalt(password, salt);
-
-      const registerRequestResponse = await registerUserRequest(
-        email,
-        hashedPassword,
-        salt,
-        PUBLIC_KEY_PEM
-      );
-      console.log(registerRequestResponse);
-
-      if (registerRequestResponse) {
-        console.log("REGISTER SUCCESS");
-        navigate("/home");
-        return;
-      }
-
-      throw new Error("REGISTER FAILED");
-    } catch (e) {
-      console.error(e);
-      setIsProceedingRequest(false);
+    if (registerRequestResponse) {
+      snackbarSuccess("Registration Success");
+      setSelectedOption("login");
     }
   };
 
-  const handleSubmit = () => {
-    // if (selectedOption === "login") handleLogin();
-    // else handleRegister();
-    openSnackbar("This is a test message", "success");
+  const handleLoginWrapper = async () => {
+    setIsProceedingRequest(true);
+    await handleLogin();
+    setIsProceedingRequest(false);
   };
+
+  const handleRegisterWrapper = async () => {
+    setIsProceedingRequest(true);
+    await handleRegister();
+    setIsProceedingRequest(false);
+  };
+
+  const handleSubmit = () => {
+    if (selectedOption === "login") handleLoginWrapper();
+    else handleRegisterWrapper();
+  };
+
+  useEffect(() => {
+    Cookies.remove("publicKeyPem");
+  }, []);
 
   return (
     <Paper
@@ -225,8 +260,8 @@ const LogonComponent = () => {
           setSelected={handleChangeSelectedOption}
         />
         <TextField
-          label="email"
-          placeholder="Your email"
+          label="Email"
+          placeholder="Your Email"
           color="secondary"
           value={email}
           error={error.email !== ""}
