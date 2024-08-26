@@ -32,9 +32,13 @@ class Credentials
     #[ORM\Column(length: 510)]
     private ?string $password = null;
 
+    #[ORM\ManyToOne(inversedBy: 'credentials')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user = null;
+
     public function __toString()
     {
-        return $this->username;
+        return $this->title;
     }
 
     public function getId(): ?int
@@ -110,6 +114,18 @@ class Credentials
     public function setPassword(string $password): static
     {
         $this->password = $password;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
 
         return $this;
     }

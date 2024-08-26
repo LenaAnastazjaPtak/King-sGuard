@@ -1,33 +1,42 @@
-import { createRef, useState } from "react";
+import { createRef, useEffect, useState } from "react";
 import CustomSwitch from "./CustomSwitch";
 import ReCAPTCHA from "react-google-recaptcha";
+import Cookies from "js-cookie";
 
 import { Button, TextField, FormControl, Paper } from "@mui/material";
 import LoadingButton from "@mui/lab/LoadingButton";
 import { useNavigate } from "react-router-dom";
 
-import { isEmailValid, SALT } from "../utils";
+import { isEmailValid, PUBLIC_KEY_PEM } from "../utils";
+import {
+  loginUserRequest,
+  registerUserRequest,
+} from "../services/api/userRequest";
 
 import "./tmp.css";
-import axios from "axios";
 import { generateSalt, hashPasswordWithSalt } from "../crypt";
+import { saltRequest } from "../services/api/saltRequest";
+// import { useSnackbar, VariantType } from "notistack";
+
+import useSnackbarHook from "../hooks/useSnackbar";
 // type Props = {}
 
 interface ErrorInterface {
   email: string;
   password: string;
   passwordConfirmation: string;
+  captcha: string;
 }
 
 const INITIAL_ERROR_STATE: ErrorInterface = {
   email: "",
   password: "",
   passwordConfirmation: "",
+  captcha: "",
 };
 
 const LogonComponent = () => {
-  // ignore the type error
-  const captchaRef = createRef<ReCAPTCHA>();
+  // const captchaRef = createRef<ReCAPTCHA>();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [passwordConfirmation, setPasswordConfirmation] = useState<string>("");
@@ -36,18 +45,10 @@ const LogonComponent = () => {
   const [isProceedingRequest, setIsProceedingRequest] =
     useState<boolean>(false);
   const OPTIONS = ["login", "register"];
+  // const { enqueueSnackbar } = useSnackbar();
+  const { snackbarError, snackbarSuccess } = useSnackbarHook();
 
   const navigate = useNavigate();
-
-  const registerUserRequest = async (hashedPassword: string, salt: string) => {
-    const response = await axios.post("http://localhost:8000/api/users", {
-      email,
-      password,
-      salt,
-    });
-
-    return response.data;
-  };
 
   const handleChangeSelectedOption = (option: string) => {
     setSelectedOption(option);
@@ -82,52 +83,41 @@ const LogonComponent = () => {
     });
   };
 
-  const handleLogin = () => {
-    console.log("login");
-    setIsProceedingRequest(true);
-    let newError = { ...error };
-    const captchaValue = captchaRef.current?.getValue();
+  const handleValidateLogin = (): boolean => {
+    const newError = { ...error };
+    const captchaValue = true;
 
     if (email === "") newError.email = "Email Cannot Be Empty";
+    if (!isEmailValid(email)) newError.email = "Invalid Email Format";
     if (password === "") newError.password = "Password Cannot Be Empty";
-
+    if (!captchaValue) newError.captcha = "Please complete the captcha";
     setError(newError);
 
-    if (!captchaValue) {
-      console.error("Please complete the captcha");
-      console.error(captchaValue);
+    if (!isEmailValid(email)) {
+      snackbarError("Invalid email format");
+      return false;
     }
 
-    if (email === "" || password === "" || !captchaValue) {
-      setIsProceedingRequest(false);
-      return;
+    if (email === "" || password === "") {
+      snackbarError("Please fill all fields");
+      return false;
+    }
+
+    if (!captchaValue) {
+      snackbarError("Please complete the captcha");
+      return false;
     }
 
     setError(INITIAL_ERROR_STATE);
 
-    const hashedPassword = hashPasswordWithSalt(password, SALT);
-    console.log(password, hashedPassword);
-
-    // TODO
-    // getSaltRequest
-    // hashPasswordWithSalt
-    // loginRequest
-    // navigate
-
-    setTimeout(() => {
-      setIsProceedingRequest(false);
-      localStorage.setItem("isLoggedIn", "true");
-      navigate("/");
-      console.log("login proceeded");
-    }, 2000);
+    return true;
   };
 
-  const handleRegister = () => {
-    console.log("register");
-    setIsProceedingRequest(true);
+  const handleValidateRegister = (): boolean => {
     const newError = { ...error };
     const isEmailValidTested = isEmailValid(email);
-    const captchaValue = captchaRef.current?.getValue();
+    // const captchaValue = captchaRef.current?.getValue();
+    const captchaValue = true;
 
     if (email === "") newError.email = "Email Cannot Be Empty";
     else if (!isEmailValidTested) newError.email = "Invalid Email Format";
@@ -147,29 +137,103 @@ const LogonComponent = () => {
       console.error(captchaValue);
     }
 
-    if (
-      email === "" ||
-      !isEmailValidTested ||
-      password === "" ||
-      passwordConfirmation === "" ||
-      password !== passwordConfirmation ||
-      !captchaValue
-    ) {
-      setIsProceedingRequest(false);
-      return;
+    if (email === "" || password === "" || passwordConfirmation === "") {
+      snackbarError("Please fill all fields");
+      return false;
+    }
+
+    if (!isEmailValidTested) {
+      snackbarError("Invalid email format");
+      return false;
+    }
+
+    if (password !== passwordConfirmation) {
+      snackbarError("Passwords do not match");
+      return false;
+    }
+
+    if (!captchaValue) {
+      snackbarError("Please complete the captcha");
+      return false;
     }
 
     setError(INITIAL_ERROR_STATE);
+    return true;
+  };
 
-    console.log("register error checking done");
+  const handleLogin = async () => {
+    if (!handleValidateLogin()) return;
+
+    const saltResponse = await saltRequest(email);
+    if (saltResponse.code === 404) {
+      snackbarError("Incorrect email or password");
+      return;
+    }
+
+    const hashedPassword = hashPasswordWithSalt(password, saltResponse.salt);
+    const loginRequestResponse = await loginUserRequest(email, hashedPassword);
+
+    if (loginRequestResponse.code === 401) {
+      snackbarError("Incorrect email or password");
+      return;
+    }
+
+    if (loginRequestResponse.code === 200) {
+      console.log(loginRequestResponse);
+      snackbarSuccess("Login Success");
+      Cookies.set("publicKeyPem", loginRequestResponse.publicKey, {
+        expires: 1,
+      });
+      navigate("/");
+    }
+  };
+
+  const handleRegister = async () => {
+    handleValidateRegister();
 
     const salt = generateSalt();
     const hashedPassword = hashPasswordWithSalt(password, salt);
-    const registerRequestResponse = registerUserRequest(hashedPassword, salt);
+
+    const registerRequestResponse = await registerUserRequest(
+      email,
+      hashedPassword,
+      salt,
+      PUBLIC_KEY_PEM
+    );
+
+    if (registerRequestResponse.code === 400) {
+      snackbarError(registerRequestResponse.message);
+      return;
+    }
+
     console.log(registerRequestResponse);
 
-    console.log("REGISTER REQUEST DONE");
+    if (registerRequestResponse) {
+      snackbarSuccess("Registration Success");
+      setSelectedOption("login");
+    }
   };
+
+  const handleLoginWrapper = async () => {
+    setIsProceedingRequest(true);
+    await handleLogin();
+    setIsProceedingRequest(false);
+  };
+
+  const handleRegisterWrapper = async () => {
+    setIsProceedingRequest(true);
+    await handleRegister();
+    setIsProceedingRequest(false);
+  };
+
+  const handleSubmit = () => {
+    if (selectedOption === "login") handleLoginWrapper();
+    else handleRegisterWrapper();
+  };
+
+  useEffect(() => {
+    Cookies.remove("publicKeyPem");
+  }, []);
 
   return (
     <Paper
@@ -196,8 +260,8 @@ const LogonComponent = () => {
           setSelected={handleChangeSelectedOption}
         />
         <TextField
-          label="email"
-          placeholder="Your email"
+          label="Email"
+          placeholder="Your Email"
           color="secondary"
           value={email}
           error={error.email !== ""}
@@ -215,6 +279,7 @@ const LogonComponent = () => {
           helperText={error.password}
           color="secondary"
           onChange={(e) => handleChangePassword(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
         />
         {selectedOption === "register" && (
           <TextField
@@ -227,16 +292,17 @@ const LogonComponent = () => {
             value={passwordConfirmation}
             helperText={error.passwordConfirmation}
             onChange={(e) => handleChangePasswordConfirmation(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
           />
         )}
-        <ReCAPTCHA
+        {/* <ReCAPTCHA
           sitekey={import.meta.env.VITE_SITE_KEY}
           ref={captchaRef}
           isolated={true}
-        />
+        /> */}
         {!isProceedingRequest ? (
           <Button
-            onClick={selectedOption === "login" ? handleLogin : handleRegister}
+            onClick={handleSubmit}
             sx={{ marginTop: "auto", height: "2.5rem" }}
             fullWidth
             variant="contained"

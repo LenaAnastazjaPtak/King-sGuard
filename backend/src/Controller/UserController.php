@@ -21,19 +21,27 @@ class UserController extends AbstractController
 
     public function login(EntityManagerInterface $entityManager, Request $request, SerializerInterface $serializer): JsonResponse
     {
-        $data = $serializer->deserialize($request->getContent(), User::class, 'json');
+        $data = $request->getContent();
+        $dataJson = json_decode($data, true);
 
-        $user = $entityManager->getRepository(User::class)->findOneBy(['email' => $data->getEmail()]);
+        if (!isset($dataJson['email'])) {
+            return new JsonResponse(['message' => 'Email is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+        }
+        if (!isset($dataJson['password'])) {
+            return new JsonResponse(['message' => 'Password is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        $user = $entityManager->getRepository(User::class)->findOneBy(['email' => $dataJson['email']]);
 
         if (!$user) {
-            return new JsonResponse(['message' => "User doesn't exist."], JsonResponse::HTTP_NOT_FOUND);
+            return new JsonResponse(['message' => "User with email {$dataJson['email']} not found", 'code' => 404], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        if ($user->getPassword() === $data->getPassword()) {
-            return new JsonResponse(['message' => "Logged in.", 'publicKey' => $user->getPublicKey()], JsonResponse::HTTP_OK);
+        if ($user->getPassword() === $dataJson['password']) {
+            return new JsonResponse(['message' => "{$dataJson['email']} logged in.", 'publicKey' => $user->getPublicKey(), 'code' => 200], JsonResponse::HTTP_OK);
         }
 
-        return new JsonResponse(['message' => "Wrong credentials!"], JsonResponse::HTTP_UNAUTHORIZED);
+        return new JsonResponse(['message' => "Wrong credentials!", 'code' => 401], JsonResponse::HTTP_UNAUTHORIZED);
     }
 
     public function index(): JsonResponse
@@ -41,25 +49,82 @@ class UserController extends AbstractController
         return $this->crudService->index(User::class);
     }
 
-    public function show(int $id): JsonResponse
-    {
-        return $this->crudService->show(User::class, $id);
-    }
-
-    public function create(Request $request): JsonResponse
+    public function show(Request $request): JsonResponse
     {
         $data = $request->getContent();
+        return $this->crudService->show(User::class, $data);
+    }
+
+    public function create(Request $request, EntityManagerInterface $em): JsonResponse
+    {
+        $data = $request->getContent();
+        $dataJson = json_decode($data, true);
+
+        if (!isset($dataJson['email'])) {
+            return new JsonResponse(['message' => 'Email is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+        }
+        if (!isset($dataJson['roles'])) {
+            return new JsonResponse(['message' => 'Roles is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+        }
+        if (!isset($dataJson['password'])) {
+            return new JsonResponse(['message' => 'Password is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+        }
+        if (!isset($dataJson['public_key'])) {
+            return new JsonResponse(['message' => 'Public key is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+        }
+        if (!isset($dataJson['salt'])) {
+            return new JsonResponse(['message' => 'Salt is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        $entity = $em->getRepository(User::class)->findOneBy(['email' => $dataJson['email']]);
+
+        if ($entity) {
+            return new JsonResponse(['message' => "User with mail {$dataJson['email']} already exists.", 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
         return $this->crudService->create(User::class, $data);
     }
 
-    public function update(int $id, Request $request): JsonResponse
+    public function update(Request $request, EntityManagerInterface $em): JsonResponse
     {
         $data = $request->getContent();
-        return $this->crudService->update(User::class, $id, $data);
+        $dataJson = json_decode($data, true);
+
+        if (!isset($dataJson['email'])) {
+            return new JsonResponse(['message' => 'Email is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+        }
+        if (!isset($dataJson['password'])) {
+            return new JsonResponse(['message' => 'Password is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+        }
+        $email = $dataJson['email'];
+
+        $entity = $em->getRepository(User::class)->findOneBy(['email' => $email]);
+
+        if (!$entity) {
+            return new JsonResponse(['message' => "User with email {$email} not found", 'code' => 404], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        return $this->crudService->update(User::class, $data, $entity);
     }
 
-    public function delete(int $id): JsonResponse
+    public function delete(Request $request, EntityManagerInterface $em): JsonResponse
     {
-        return $this->crudService->delete(User::class, $id);
+        $data = $request->getContent();
+        $dataJson = json_decode($data, true);
+
+        if (!isset($dataJson['email'])) {
+            return new JsonResponse(['message' => 'Email is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        $entity = $em->getRepository(User::class)->findOneBy(['email' => $dataJson['email']]);
+
+        return $this->crudService->delete(User::class, $entity);
+    }
+
+    public function getSaltByUser(Request $request): JsonResponse
+    {
+        $data = $request->getContent();
+
+        return $this->crudService->salt(User::class, $data);
     }
 }

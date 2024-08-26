@@ -7,6 +7,7 @@ controllers:
 login:
     path: /login
     controller: App\Controller\UserController::login
+    methods: POST
 
 # USERS
 api_users_index:
@@ -15,30 +16,29 @@ api_users_index:
     methods: GET
 
 api_users_show:
-    path: /api/users/{id}
+    path: /api/users/get
     controller: App\Controller\UserController::show
-    methods: GET
-    requirements:
-        id: '\d+'
+    methods: POST
 
 api_users_create:
-    path: /api/users
+    path: /api/users/create
     controller: App\Controller\UserController::create
     methods: POST
 
 api_users_update:
-    path: /api/users/{id}
+    path: /api/users/update
     controller: App\Controller\UserController::update
-    methods: PUT
-    requirements:
-        id: '\d+'
+    methods: POST
 
 api_users_delete:
-    path: /api/users/{id}
+    path: /api/users
     controller: App\Controller\UserController::delete
     methods: DELETE
-    requirements:
-        id: '\d+'
+
+api_users_salt:
+    path: /api/salt
+    controller: App\Controller\UserController::getSaltByUser
+    methods: POST
 
 # CREDENTIALS
 api_credentials_index:
@@ -47,11 +47,9 @@ api_credentials_index:
     methods: GET
 
 api_credentials_show:
-    path: /api/credentials/{id}
+    path: /api/credentials
     controller: App\Controller\CredentialsController::show
     methods: GET
-    requirements:
-        id: '\d+'
 
 api_credentials_create:
     path: /api/credentials
@@ -59,18 +57,14 @@ api_credentials_create:
     methods: POST
 
 api_credentials_update:
-    path: /api/credentials/{id}
+    path: /api/credentials/update
     controller: App\Controller\CredentialsController::update
     methods: PUT
-    requirements:
-        id: '\d+'
 
 api_credentials_delete:
-    path: /api/credentials/{id}
+    path: /api/credentials
     controller: App\Controller\CredentialsController::delete
     methods: DELETE
-    requirements:
-        id: '\d+'
 
 # GROUP
 api_groups_index:
