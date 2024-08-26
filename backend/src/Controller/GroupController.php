@@ -25,10 +25,10 @@ class GroupController extends AbstractController
         return $this->crudService->index(Group::class);
     }
 
-    public function show(int $id): JsonResponse
-    {
-        return $this->crudService->show(Group::class, $id);
-    }
+//    public function show(int $id): JsonResponse
+//    {
+//        return $this->crudService->show(Group::class, $id);
+//    }
 
     public function create(Request $request, EntityManagerInterface $em): JsonResponse
     {

@@ -48,10 +48,22 @@ class UserController extends AbstractController
         return $this->crudService->index(User::class);
     }
 
-    public function show(Request $request): JsonResponse
+    public function show(Request $request, EntityManagerInterface $em): JsonResponse
     {
         $data = $request->getContent();
-        return $this->crudService->show(User::class, $data);
+        $dataJson = json_decode($data, true);
+
+        if (!isset($data['email'])) {
+            return new JsonResponse(['message' => 'Email is required', 'code' => 400], Response::HTTP_BAD_REQUEST);
+        }
+
+        $entity = $em->getRepository(User::class)->findOneBy(['email' => $dataJson['email']]);
+
+        if (!$entity) {
+            return new JsonResponse(['message' => "User with email {$dataJson['email']} not found", 'code' => 404], Response::HTTP_NOT_FOUND);
+        }
+
+        return $this->crudService->show($entity);
     }
 
     public function create(Request $request, EntityManagerInterface $em): JsonResponse

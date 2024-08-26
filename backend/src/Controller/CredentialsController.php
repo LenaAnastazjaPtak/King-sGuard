@@ -26,11 +26,11 @@ class CredentialsController extends AbstractController
         return $this->crudService->index(Credentials::class);
     }
 
-    public function show(Request $request): JsonResponse
-    {
-        $data = $request->getContent();
-        return $this->crudService->show(Credentials::class, $data);
-    }
+//    public function show(Request $request): JsonResponse
+//    {
+//        $data = $request->getContent();
+//        return $this->crudService->show(Credentials::class, $data);
+//    }
 
     public function create(Request $request, EntityManagerInterface $em): JsonResponse
     {

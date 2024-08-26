@@ -46,10 +46,10 @@ api_credentials_index:
     controller: App\Controller\CredentialsController::index
     methods: GET
 
-api_credentials_show:
-    path: /api/credentials
-    controller: App\Controller\CredentialsController::show
-    methods: GET
+#api_credentials_show:
+#    path: /api/credentials
+#    controller: App\Controller\CredentialsController::show
+#    methods: GET
 
 api_credentials_create:
     path: /api/credentials
