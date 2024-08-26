@@ -13,8 +13,7 @@ export const comparePemKeys = (key1: string, key2: string) => {
   );
 };
 
-export const generateKeyPairFromString = (baseString: string) => {
-  const salt = "some-fixed-salt";
+export const generateKeyPairFromString = (baseString: string, salt: string) => {
   const iterations = 10000;
   const seed = forge.pkcs5.pbkdf2(baseString, salt, iterations, 32);
 
@@ -48,18 +47,14 @@ export const verifyKeyPair = (
       md: forge.md.sha256.create(),
     });
 
-    // console.log('Encrypted message:', forge.util.encode64(encrypted));
-
     const decrypted = privateKey.decrypt(encrypted, "RSA-OAEP", {
       md: forge.md.sha256.create(),
     });
 
-    // console.log('Decrypted message:', decrypted);
-
     return testMessage === decrypted;
   } catch (error) {
-    // console.error('Invalid RSAES-OAEP padding or other decryption error');
-    // console.error(error);
+    console.error("Invalid RSAES-OAEP padding or other decryption error");
+    console.error(error);
 
     return false;
   }
@@ -69,33 +64,56 @@ export const encryptPassword = (
   publicKeyPem: string,
   password: string
 ): string => {
-  const publicKey = forge.pki.publicKeyFromPem(publicKeyPem);
-  const encryptedPassword = publicKey.encrypt(password, "RSA-OAEP", {
-    md: forge.md.sha256.create(),
-  });
-  return forge.util.encode64(encryptedPassword);
+  try {
+    const publicKey = forge.pki.publicKeyFromPem(publicKeyPem);
+    const encryptedPassword = publicKey.encrypt(password, "RSA-OAEP", {
+      md: forge.md.sha256.create(),
+      mgf1: {
+        md: forge.md.sha1.create(),
+      },
+    });
+    return forge.util.encode64(encryptedPassword);
+  } catch (error) {
+    console.error("Invalid RSAES-OAEP padding or other encryption error");
+    console.error(error);
+    return "Error";
+  }
 };
 
 export const decryptPassword = (
   privateKeyPem: string,
   encryptedPasswordBase64: string
 ): string => {
-  const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
-  const encryptedPassword = forge.util.decode64(encryptedPasswordBase64);
-  const decryptedPassword = privateKey.decrypt(encryptedPassword, "RSA-OAEP", {
-    md: forge.md.sha256.create(),
-  });
-  return decryptedPassword;
+  try {
+    const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
+    const encryptedPassword = forge.util.decode64(encryptedPasswordBase64);
+    const decryptedPassword = privateKey.decrypt(
+      encryptedPassword,
+      "RSA-OAEP",
+      {
+        md: forge.md.sha256.create(),
+        mgf1: {
+          md: forge.md.sha1.create(),
+        },
+      }
+    );
+    return decryptedPassword;
+  } catch (error) {
+    console.error("Invalid RSAES-OAEP padding or other decryption error");
+    console.error(error);
+    return "Error";
+  }
 };
 
 export const verifyMasterPassword = (
   masterPassword: string,
+  salt: string,
   publicKeyPem: string
 ): undefined | string => {
   if (masterPassword === "") return;
 
   const startTime = performance.now();
-  const { privateKeyPem } = generateKeyPairFromString(masterPassword);
+  const { privateKeyPem } = generateKeyPairFromString(masterPassword, salt);
 
   const endTime = performance.now();
   if (!verifyKeyPair(publicKeyPem, privateKeyPem)) {
