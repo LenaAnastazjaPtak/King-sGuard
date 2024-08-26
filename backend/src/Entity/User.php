@@ -33,7 +33,7 @@ class User implements UserInterface
     private ?string $publicKey = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $language = null;
+    private ?string $language = 'PL';
 
     #[ORM\Column(length: 255)]
     private ?string $salt = null;
