@@ -8,9 +8,14 @@ const useAuth = (onAuthComplete: () => void) => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const authResult = !!Cookies.get("publicKeyPem");
-      setIsAuthenticated(authResult);
+      if (!Cookies.get("userData")) {
+        navigate("/logon");
+        return;
+      }
 
+      const authResult = JSON.parse(Cookies.get("userData") ?? "");
+
+      setIsAuthenticated(!!authResult);
       if (!authResult) {
         navigate("/logon");
       } else {
