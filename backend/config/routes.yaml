@@ -72,12 +72,12 @@ api_groups_index:
     controller: App\Controller\GroupController::index
     methods: GET
 
-api_groups_show:
-    path: /api/groups/{id}
-    controller: App\Controller\GroupController::show
-    methods: GET
-    requirements:
-        id: '\d+'
+#api_groups_show:
+#    path: /api/groups/{id}
+#    controller: App\Controller\GroupController::show
+#    methods: GET
+#    requirements:
+#        id: '\d+'
 
 api_groups_create:
     path: /api/groups

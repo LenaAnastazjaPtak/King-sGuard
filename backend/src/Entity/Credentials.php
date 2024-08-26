@@ -27,6 +27,7 @@ class Credentials
     private ?string $notes = null;
 
     #[ORM\ManyToOne(inversedBy: 'credentials')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Group $category = null;
 
     #[ORM\Column(length: 510)]

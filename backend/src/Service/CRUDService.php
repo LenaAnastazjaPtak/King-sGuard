@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Credentials;
+use App\Entity\Group;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -44,16 +45,6 @@ class CRUDService
             if (!$entity) {
                 return new JsonResponse(['message' => "User with email {$email} not found", 'code' => 404], JsonResponse::HTTP_NOT_FOUND);
             }
-        } else {
-            if (!isset($data['title'])) {
-                return new JsonResponse(['message' => 'Title is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
-            }
-
-            $entity = $this->entityManager->getRepository($entityClass)->findOneBy(['title' => $data['title']]);
-
-            if (!$entity) {
-                return new JsonResponse(['message' => "Entity with title {$data['title']} not found", 'code' => 404], JsonResponse::HTTP_NOT_FOUND);
-            }
         }
 
         $jsonEntity = $this->serializer->serialize($entity, 'json');
@@ -61,17 +52,21 @@ class CRUDService
         return new JsonResponse(['entity' => json_decode($jsonEntity), 'code' => 200], JsonResponse::HTTP_OK);
     }
 
-    public function create(string $entityClass, string $data, $user = null): JsonResponse
+    public function create(string $entityClass, string $data, $user = null, $group = null): JsonResponse
     {
         $entity = $this->serializer->deserialize($data, $entityClass, 'json');
 
-        if ($entityClass == Credentials::class) {
+        if ($entityClass == Credentials::class or $entityClass == Group::class) {
             $entity->setUser($user);
+
+            if ($group) {
+                $entity->setCategory($group);
+            }
 
             $this->entityManager->persist($entity);
             $this->entityManager->flush();
 
-            return new JsonResponse(['message' => "Credentials created.", 'publicKey' => $user->getPublicKey(), 'code' => 201], JsonResponse::HTTP_CREATED);
+            return new JsonResponse(['message' => "{$entity} created.", 'publicKey' => $user->getPublicKey(), 'code' => 201], JsonResponse::HTTP_CREATED);
         }
 
         $this->entityManager->persist($entity);

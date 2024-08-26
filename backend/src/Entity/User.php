@@ -44,9 +44,16 @@ class User implements UserInterface
     #[ORM\OneToMany(targetEntity: Credentials::class, mappedBy: 'user', orphanRemoval: true)]
     private Collection $credentials;
 
+    /**
+     * @var Collection<int, Group>
+     */
+    #[ORM\OneToMany(targetEntity: Group::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $categories;
+
     public function __construct()
     {
         $this->credentials = new ArrayCollection();
+        $this->categories = new ArrayCollection();
     }
 
     public function __toString()
@@ -186,6 +193,36 @@ class User implements UserInterface
             // set the owning side to null (unless already changed)
             if ($credential->getUser() === $this) {
                 $credential->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Group>
+     */
+    public function getCategories(): Collection
+    {
+        return $this->categories;
+    }
+
+    public function addCategory(Group $category): static
+    {
+        if (!$this->categories->contains($category)) {
+            $this->categories->add($category);
+            $category->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCategory(Group $category): static
+    {
+        if ($this->categories->removeElement($category)) {
+            // set the owning side to null (unless already changed)
+            if ($category->getUser() === $this) {
+                $category->setUser(null);
             }
         }
 

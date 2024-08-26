@@ -26,6 +26,10 @@ class Group
     #[ORM\OneToMany(targetEntity: Credentials::class, mappedBy: 'category')]
     private Collection $credentials;
 
+    #[ORM\ManyToOne(inversedBy: 'categories')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user = null;
+
     public function __construct()
     {
         $this->credentials = new ArrayCollection();
@@ -79,6 +83,18 @@ class Group
                 $credential->setCategory(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
 
         return $this;
     }

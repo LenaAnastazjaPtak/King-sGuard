@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Credentials;
+use App\Entity\Group;
 use App\Entity\User;
 use App\Service\CRUDService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -32,6 +33,7 @@ class CredentialsController extends AbstractController
 
     public function create(Request $request, EntityManagerInterface $em): JsonResponse
     {
+        $group = null;
         $data = $request->getContent();
         $dataJson = json_decode($data, true);
 
@@ -58,7 +60,14 @@ class CredentialsController extends AbstractController
             return new JsonResponse(['message' => "User with mail {$dataJson['email']} not found.", 'code' => 404], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        return $this->crudService->create(Credentials::class, $data, $user);
+        if (isset($dataJson['category_id'])) {
+            $group = $em->getRepository(Group::class)->findOneBy(['id' => $dataJson['category_id'], 'user' => $user]);
+            if (!$group) {
+                return new JsonResponse(['message' => "Group with id {$dataJson['category_id']} for {$user} not found.", 'code' => 404], JsonResponse::HTTP_NOT_FOUND);
+            }
+        }
+
+        return $this->crudService->create(Credentials::class, $data, $user, $group);
     }
 
     public function update(Request $request, EntityManagerInterface $em): JsonResponse
