@@ -1,12 +1,12 @@
 import { Box, Button, Modal, TextField } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CustomSwitch from "./CustomSwitch";
 import PasswordGenerator from "./PasswordGenerator";
 
 type Props = {
   isModalOpen: boolean;
   handleClose: () => void;
-  handleSave: (password: string, website: string) => void;
+  handleSave: (password: string, website: string, username: string) => void;
 };
 
 const style = {
@@ -29,6 +29,7 @@ const style = {
 const NewPasswordModal = ({ isModalOpen, handleClose, handleSave }: Props) => {
   const [password, setPassword] = useState<string>("");
   const [website, setWebsite] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
   const [passwordSource, setPasswordSource] = useState<string>("Your Password");
   const [websiteError, setWebsiteError] = useState<string>("");
   const [passwordError, setPasswordError] = useState<string>("");
@@ -42,7 +43,7 @@ const NewPasswordModal = ({ isModalOpen, handleClose, handleSave }: Props) => {
       setPasswordError("Password Cannot Be Empty");
       return;
     }
-    handleSave(password, website);
+    handleSave(password, website, username);
   };
 
   const handleChangeWebsite = (value: string) => {
@@ -56,10 +57,8 @@ const NewPasswordModal = ({ isModalOpen, handleClose, handleSave }: Props) => {
   };
 
   const handleChangePasswordSource = (value: string) => {
+    if (value === "Your Password") setPassword("");
     setPasswordSource(value);
-    if (password !== "") {
-      setPasswordError("");
-    }
   };
 
   return (
@@ -79,6 +78,13 @@ const NewPasswordModal = ({ isModalOpen, handleClose, handleSave }: Props) => {
             value={website}
             onChange={(e) => handleChangeWebsite(e.target.value)}
             error={websiteError !== ""}
+            color="secondary"
+          />
+          <TextField
+            label="Username"
+            placeholder="Your Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             color="secondary"
           />
           <CustomSwitch
