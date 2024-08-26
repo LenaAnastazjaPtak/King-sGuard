@@ -205,7 +205,7 @@ const LogonComponent = () => {
   };
 
   const handleRegister = async () => {
-    handleValidateRegister();
+    if (!handleValidateRegister()) return;
 
     const salt = generateSalt();
     const hashedPassword = hashPasswordWithSalt(password, salt);
@@ -256,7 +256,7 @@ const LogonComponent = () => {
   }, [selectedOption]);
 
   useEffect(() => {
-    Cookies.remove("publicKeyPem");
+    Cookies.remove("userData");
   }, []);
 
   return (
