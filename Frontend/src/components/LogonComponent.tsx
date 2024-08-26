@@ -14,7 +14,11 @@ import {
 } from "../services/api/userRequest";
 
 import "./tmp.css";
-import { generateSalt, hashPasswordWithSalt } from "../crypt";
+import {
+  generateKeyPairFromString,
+  generateSalt,
+  hashPasswordWithSalt,
+} from "../crypt";
 import { saltRequest } from "../services/api/saltRequest";
 // import { useSnackbar, VariantType } from "notistack";
 
@@ -162,6 +166,8 @@ const LogonComponent = () => {
   };
 
   const handleLogin = async () => {
+    const start = performance.now();
+
     if (!handleValidateLogin()) return;
 
     const saltResponse = await saltRequest(email);
@@ -181,9 +187,19 @@ const LogonComponent = () => {
     if (loginRequestResponse.code === 200) {
       console.log(loginRequestResponse);
       snackbarSuccess("Login Success");
-      Cookies.set("publicKeyPem", loginRequestResponse.publicKey, {
+
+      const userData = {
+        publicKey: loginRequestResponse.publicKey,
+        email: loginRequestResponse.email,
+        salt: saltResponse.salt,
+      };
+
+      Cookies.set("userData", JSON.stringify(userData), {
         expires: 1,
       });
+
+      const end = performance.now();
+      console.log(`Time taken to login: ${end - start}ms`);
       navigate("/");
     }
   };
@@ -193,12 +209,13 @@ const LogonComponent = () => {
 
     const salt = generateSalt();
     const hashedPassword = hashPasswordWithSalt(password, salt);
+    const { publicKeyPem } = generateKeyPairFromString(password, salt);
 
     const registerRequestResponse = await registerUserRequest(
       email,
       hashedPassword,
       salt,
-      PUBLIC_KEY_PEM
+      publicKeyPem
     );
 
     if (registerRequestResponse.code === 400) {
@@ -230,6 +247,13 @@ const LogonComponent = () => {
     if (selectedOption === "login") handleLoginWrapper();
     else handleRegisterWrapper();
   };
+
+  useEffect(() => {
+    setError(INITIAL_ERROR_STATE);
+    setEmail("");
+    setPassword("");
+    setPasswordConfirmation("");
+  }, [selectedOption]);
 
   useEffect(() => {
     Cookies.remove("publicKeyPem");
