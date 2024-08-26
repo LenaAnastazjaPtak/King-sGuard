@@ -1,0 +1,6 @@
+div:has(iframe[title="reCAPTCHA"]) {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}

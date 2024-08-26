@@ -1,20 +1,32 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Cookies from "js-cookie";
 
-const isAuthenticated = (): boolean => {
-    return !!localStorage.getItem("isLoggedIn")
-}
+const useAuth = (onAuthComplete: () => void) => {
+  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
-const useAuth = () => {
-    const navigate = useNavigate()
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (!Cookies.get("userData")) {
+        navigate("/logon");
+        return;
+      }
 
-    useEffect(() => {
-        if (!isAuthenticated()) {
-            navigate("/logon", { replace: true })
-        }
-    }, [navigate])
+      const authResult = JSON.parse(Cookies.get("userData") ?? "");
 
-    return isAuthenticated()
-}
+      setIsAuthenticated(!!authResult);
+      if (!authResult) {
+        navigate("/logon");
+      } else {
+        onAuthComplete();
+      }
+    };
 
-export default useAuth
+    checkAuth();
+  }, [navigate, onAuthComplete]);
+
+  return isAuthenticated;
+};
+
+export default useAuth;
