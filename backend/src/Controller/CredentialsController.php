@@ -3,12 +3,14 @@
 namespace App\Controller;
 
 use App\Entity\Credentials;
+use App\Entity\Group;
 use App\Entity\User;
 use App\Service\CRUDService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class CredentialsController extends AbstractController
 {
@@ -24,41 +26,49 @@ class CredentialsController extends AbstractController
         return $this->crudService->index(Credentials::class);
     }
 
-    public function show(Request $request): JsonResponse
-    {
-        $data = $request->getContent();
-        return $this->crudService->show(Credentials::class, $data);
-    }
+//    public function show(Request $request): JsonResponse
+//    {
+//        $data = $request->getContent();
+//        return $this->crudService->show(Credentials::class, $data);
+//    }
 
     public function create(Request $request, EntityManagerInterface $em): JsonResponse
     {
+        $group = null;
         $data = $request->getContent();
         $dataJson = json_decode($data, true);
 
         if (!isset($dataJson['email'])) {
-            return new JsonResponse(['message' => 'Email is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Email is required', 'code' => 400], Response::HTTP_BAD_REQUEST);
         }
         if (!isset($dataJson['title'])) {
-            return new JsonResponse(['message' => 'Title is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Title is required', 'code' => 400], Response::HTTP_BAD_REQUEST);
         }
         if (!isset($dataJson['username'])) {
-            return new JsonResponse(['message' => 'Username is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Username is required', 'code' => 400], Response::HTTP_BAD_REQUEST);
         }
         if (!isset($dataJson['password'])) {
-            return new JsonResponse(['message' => 'Password is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Password is required', 'code' => 400], Response::HTTP_BAD_REQUEST);
         }
 
         $entity = $em->getRepository(Credentials::class)->findOneBy(['title' => $dataJson['title']]);
         if ($entity) {
-            return new JsonResponse(['message' => "Credential with title {$dataJson['title']} already exists.", 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => "Credential with title {$dataJson['title']} already exists.", 'code' => 400], Response::HTTP_BAD_REQUEST);
         }
 
         $user = $em->getRepository(User::class)->findOneBy(['email' => $dataJson['email']]);
         if (!$user) {
-            return new JsonResponse(['message' => "User with mail {$dataJson['email']} not found.", 'code' => 404], JsonResponse::HTTP_NOT_FOUND);
+            return new JsonResponse(['message' => "User with mail {$dataJson['email']} not found.", 'code' => 404], Response::HTTP_NOT_FOUND);
         }
 
-        return $this->crudService->create(Credentials::class, $data, $user);
+        if (isset($dataJson['category_id'])) {
+            $group = $em->getRepository(Group::class)->findOneBy(['id' => $dataJson['category_id'], 'user' => $user]);
+            if (!$group) {
+                return new JsonResponse(['message' => "Group with id {$dataJson['category_id']} for $user not found.", 'code' => 404], Response::HTTP_NOT_FOUND);
+            }
+        }
+
+        return $this->crudService->create(Credentials::class, $data, $user, $group);
     }
 
     public function update(Request $request, EntityManagerInterface $em): JsonResponse
@@ -67,20 +77,20 @@ class CredentialsController extends AbstractController
         $dataJson = json_decode($data, true);
 
         if (!isset($dataJson['email'])) {
-            return new JsonResponse(['message' => 'Email is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Email is required', 'code' => 400], Response::HTTP_BAD_REQUEST);
         }
         if (!isset($dataJson['title'])) {
-            return new JsonResponse(['message' => 'Title is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Title is required', 'code' => 400], Response::HTTP_BAD_REQUEST);
         }
 
         $entity = $em->getRepository(Credentials::class)->findOneBy(['title' => $dataJson['title']]);
         if (!$entity) {
-            return new JsonResponse(['message' => "Credential with title {$dataJson['title']} not found.", 'code' => 404], JsonResponse::HTTP_NOT_FOUND);
+            return new JsonResponse(['message' => "Credential with title {$dataJson['title']} not found.", 'code' => 404], Response::HTTP_NOT_FOUND);
         }
 
         $user = $em->getRepository(User::class)->findOneBy(['email' => $dataJson['email']]);
         if (!$user) {
-            return new JsonResponse(['message' => "User with mail {$dataJson['email']} not found.", 'code' => 404], JsonResponse::HTTP_NOT_FOUND);
+            return new JsonResponse(['message' => "User with mail {$dataJson['email']} not found.", 'code' => 404], Response::HTTP_NOT_FOUND);
         }
 
         return $this->crudService->update(Credentials::class, $data, $entity);
@@ -92,7 +102,7 @@ class CredentialsController extends AbstractController
         $dataJson = json_decode($data, true);
 
         if (!isset($dataJson['title'])) {
-            return new JsonResponse(['message' => 'Title is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Title is required', 'code' => 400], Response::HTTP_BAD_REQUEST);
         }
 
         $entity = $em->getRepository(Credentials::class)->findOneBy(['title' => $dataJson['title']]);

@@ -8,8 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Serializer\SerializerInterface;
-
+use Symfony\Component\HttpFoundation\Response;
 class UserController extends AbstractController
 {
     private CRUDService $crudService;
@@ -19,29 +18,29 @@ class UserController extends AbstractController
         $this->crudService = $crudService;
     }
 
-    public function login(EntityManagerInterface $entityManager, Request $request, SerializerInterface $serializer): JsonResponse
+    public function login(EntityManagerInterface $entityManager, Request $request): JsonResponse
     {
         $data = $request->getContent();
         $dataJson = json_decode($data, true);
 
         if (!isset($dataJson['email'])) {
-            return new JsonResponse(['message' => 'Email is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Email is required', 'code' => 400], Response::HTTP_BAD_REQUEST);
         }
         if (!isset($dataJson['password'])) {
-            return new JsonResponse(['message' => 'Password is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Password is required', 'code' => 400], Response::HTTP_BAD_REQUEST);
         }
 
         $user = $entityManager->getRepository(User::class)->findOneBy(['email' => $dataJson['email']]);
 
         if (!$user) {
-            return new JsonResponse(['message' => "User with email {$dataJson['email']} not found", 'code' => 404], JsonResponse::HTTP_NOT_FOUND);
+            return new JsonResponse(['message' => "User with email {$dataJson['email']} not found", 'code' => 404], Response::HTTP_NOT_FOUND);
         }
 
         if ($user->getPassword() === $dataJson['password']) {
-            return new JsonResponse(['message' => "{$dataJson['email']} logged in.", 'publicKey' => $user->getPublicKey(), 'code' => 200], JsonResponse::HTTP_OK);
+            return new JsonResponse(['message' => "{$dataJson['email']} logged in.", 'publicKey' => $user->getPublicKey(), 'code' => 200], Response::HTTP_OK);
         }
 
-        return new JsonResponse(['message' => "Wrong credentials!", 'code' => 401], JsonResponse::HTTP_UNAUTHORIZED);
+        return new JsonResponse(['message' => "Wrong credentials!", 'code' => 401], Response::HTTP_UNAUTHORIZED);
     }
 
     public function index(): JsonResponse
@@ -49,10 +48,22 @@ class UserController extends AbstractController
         return $this->crudService->index(User::class);
     }
 
-    public function show(Request $request): JsonResponse
+    public function show(Request $request, EntityManagerInterface $em): JsonResponse
     {
         $data = $request->getContent();
-        return $this->crudService->show(User::class, $data);
+        $dataJson = json_decode($data, true);
+
+        if (!isset($data['email'])) {
+            return new JsonResponse(['message' => 'Email is required', 'code' => 400], Response::HTTP_BAD_REQUEST);
+        }
+
+        $entity = $em->getRepository(User::class)->findOneBy(['email' => $dataJson['email']]);
+
+        if (!$entity) {
+            return new JsonResponse(['message' => "User with email {$dataJson['email']} not found", 'code' => 404], Response::HTTP_NOT_FOUND);
+        }
+
+        return $this->crudService->show($entity);
     }
 
     public function create(Request $request, EntityManagerInterface $em): JsonResponse
@@ -61,25 +72,25 @@ class UserController extends AbstractController
         $dataJson = json_decode($data, true);
 
         if (!isset($dataJson['email'])) {
-            return new JsonResponse(['message' => 'Email is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Email is required', 'code' => 400], Response::HTTP_BAD_REQUEST);
         }
         if (!isset($dataJson['roles'])) {
-            return new JsonResponse(['message' => 'Roles is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Roles is required', 'code' => 400], Response::HTTP_BAD_REQUEST);
         }
         if (!isset($dataJson['password'])) {
-            return new JsonResponse(['message' => 'Password is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Password is required', 'code' => 400], Response::HTTP_BAD_REQUEST);
         }
         if (!isset($dataJson['public_key'])) {
-            return new JsonResponse(['message' => 'Public key is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Public key is required', 'code' => 400], Response::HTTP_BAD_REQUEST);
         }
         if (!isset($dataJson['salt'])) {
-            return new JsonResponse(['message' => 'Salt is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Salt is required', 'code' => 400], Response::HTTP_BAD_REQUEST);
         }
 
         $entity = $em->getRepository(User::class)->findOneBy(['email' => $dataJson['email']]);
 
         if ($entity) {
-            return new JsonResponse(['message' => "User with mail {$dataJson['email']} already exists.", 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => "User with mail {$dataJson['email']} already exists.", 'code' => 400], Response::HTTP_BAD_REQUEST);
         }
 
         return $this->crudService->create(User::class, $data);
@@ -91,17 +102,17 @@ class UserController extends AbstractController
         $dataJson = json_decode($data, true);
 
         if (!isset($dataJson['email'])) {
-            return new JsonResponse(['message' => 'Email is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Email is required', 'code' => 400], Response::HTTP_BAD_REQUEST);
         }
         if (!isset($dataJson['password'])) {
-            return new JsonResponse(['message' => 'Password is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Password is required', 'code' => 400], Response::HTTP_BAD_REQUEST);
         }
         $email = $dataJson['email'];
 
         $entity = $em->getRepository(User::class)->findOneBy(['email' => $email]);
 
         if (!$entity) {
-            return new JsonResponse(['message' => "User with email {$email} not found", 'code' => 404], JsonResponse::HTTP_NOT_FOUND);
+            return new JsonResponse(['message' => "User with email $email not found", 'code' => 404], Response::HTTP_NOT_FOUND);
         }
 
         return $this->crudService->update(User::class, $data, $entity);
@@ -113,7 +124,7 @@ class UserController extends AbstractController
         $dataJson = json_decode($data, true);
 
         if (!isset($dataJson['email'])) {
-            return new JsonResponse(['message' => 'Email is required', 'code' => 400], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'Email is required', 'code' => 400], Response::HTTP_BAD_REQUEST);
         }
 
         $entity = $em->getRepository(User::class)->findOneBy(['email' => $dataJson['email']]);
