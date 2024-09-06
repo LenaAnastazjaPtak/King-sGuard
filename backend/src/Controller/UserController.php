@@ -38,7 +38,7 @@ class UserController extends AbstractController
         }
 
         if ($user->getPassword() === $dataJson['password']) {
-            return new JsonResponse(['message' => "{$dataJson['email']} logged in.", 'publicKey' => $user->getPublicKey(), 'code' => 200], JsonResponse::HTTP_OK);
+            return new JsonResponse(['message' => "{$dataJson['email']} logged in.", 'publicKey' => $user->getPublicKey(), 'code' => 200, 'id' => $user->getId()], JsonResponse::HTTP_OK);
         }
 
         return new JsonResponse(['message' => "Wrong credentials!", 'code' => 401], JsonResponse::HTTP_UNAUTHORIZED);
