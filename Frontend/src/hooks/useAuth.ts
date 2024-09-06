@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
+import { getUserDataFromCookies } from "../utils";
 
-const useAuth = (onAuthComplete: () => void) => {
+const useAuth = (onAuthComplete?: () => void) => {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   useEffect(() => {
     const checkAuth = async () => {
-      if (!Cookies.get("userData")) {
+      if (!getUserDataFromCookies()) {
         navigate("/logon");
         return;
       }
@@ -19,7 +20,7 @@ const useAuth = (onAuthComplete: () => void) => {
       if (!authResult) {
         navigate("/logon");
       } else {
-        onAuthComplete();
+        onAuthComplete && onAuthComplete();
       }
     };
 
