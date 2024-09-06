@@ -1,12 +1,17 @@
 import { Box, Button, Modal, TextField } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import CustomSwitch from "./CustomSwitch";
 import PasswordGenerator from "./PasswordGenerator";
 
 type Props = {
   isModalOpen: boolean;
   handleClose: () => void;
-  handleSave: (password: string, website: string, username: string) => void;
+  handleSave: (
+    password: string,
+    website: string,
+    username: string,
+    category: string
+  ) => void;
 };
 
 const style = {
@@ -43,7 +48,7 @@ const NewPasswordModal = ({ isModalOpen, handleClose, handleSave }: Props) => {
       setPasswordError("Password Cannot Be Empty");
       return;
     }
-    handleSave(password, website, username);
+    handleSave(password, website, username, "1");
   };
 
   const handleChangeWebsite = (value: string) => {
