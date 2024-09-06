@@ -63,7 +63,7 @@ export const verifyKeyPair = (
 export const encryptPassword = (
   publicKeyPem: string,
   password: string
-): string => {
+): string | undefined => {
   try {
     const publicKey = forge.pki.publicKeyFromPem(publicKeyPem);
     const encryptedPassword = publicKey.encrypt(password, "RSA-OAEP", {
@@ -76,7 +76,7 @@ export const encryptPassword = (
   } catch (error) {
     console.error("Invalid RSAES-OAEP padding or other encryption error");
     console.error(error);
-    return "Error";
+    return;
   }
 };
 
