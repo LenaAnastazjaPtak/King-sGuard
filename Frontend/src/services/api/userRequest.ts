@@ -1,4 +1,6 @@
 import axios from "axios";
+import { getBackendURL } from "../../utils";
+const BACKEND_URL = getBackendURL();
 
 export const registerUserRequest = async (
   email: string,
@@ -7,7 +9,7 @@ export const registerUserRequest = async (
   publicKey: string
 ) => {
   const response = await axios
-    .post("http://localhost:8000/api/users/create", {
+    .post(`${BACKEND_URL}/api/users/create`, {
       email: email,
       password: password,
       salt: salt,
@@ -24,7 +26,7 @@ export const registerUserRequest = async (
 
 export const loginUserRequest = async (email: string, password: string) => {
   const response = await axios
-    .post("http://localhost:8000/login", {
+    .post(`${BACKEND_URL}/login`, {
       email: email,
       password: password,
     })
