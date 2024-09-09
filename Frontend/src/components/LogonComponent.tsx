@@ -1,13 +1,13 @@
-import { createRef, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import CustomSwitch from "./CustomSwitch";
-import ReCAPTCHA from "react-google-recaptcha";
+// import ReCAPTCHA from "react-google-recaptcha";
 import Cookies from "js-cookie";
 
 import { Button, TextField, FormControl, Paper } from "@mui/material";
 import LoadingButton from "@mui/lab/LoadingButton";
 import { useNavigate } from "react-router-dom";
 
-import { isEmailValid, PUBLIC_KEY_PEM } from "../utils";
+import { emailValidator } from "../utils";
 import {
   loginUserRequest,
   registerUserRequest,
@@ -23,6 +23,7 @@ import { saltRequest } from "../services/api/saltRequest";
 // import { useSnackbar, VariantType } from "notistack";
 
 import useSnackbarHook from "../hooks/useSnackbar";
+import { UserDataCookiesInterface } from "../interfaces";
 // type Props = {}
 
 interface ErrorInterface {
@@ -50,7 +51,7 @@ const LogonComponent = () => {
     useState<boolean>(false);
   const OPTIONS = ["login", "register"];
   // const { enqueueSnackbar } = useSnackbar();
-  const { snackbarError, snackbarSuccess } = useSnackbarHook();
+  const { snackbarError, snackbarSuccess, snackbarInfo } = useSnackbarHook();
 
   const navigate = useNavigate();
 
@@ -92,12 +93,12 @@ const LogonComponent = () => {
     const captchaValue = true;
 
     if (email === "") newError.email = "Email Cannot Be Empty";
-    if (!isEmailValid(email)) newError.email = "Invalid Email Format";
+    if (!emailValidator(email)) newError.email = "Invalid Email Format";
     if (password === "") newError.password = "Password Cannot Be Empty";
     if (!captchaValue) newError.captcha = "Please complete the captcha";
     setError(newError);
 
-    if (!isEmailValid(email)) {
+    if (!emailValidator(email)) {
       snackbarError("Invalid email format");
       return false;
     }
@@ -119,7 +120,7 @@ const LogonComponent = () => {
 
   const handleValidateRegister = (): boolean => {
     const newError = { ...error };
-    const isEmailValidTested = isEmailValid(email);
+    const isEmailValidTested = emailValidator(email);
     // const captchaValue = captchaRef.current?.getValue();
     const captchaValue = true;
 
@@ -168,6 +169,12 @@ const LogonComponent = () => {
   const handleLogin = async () => {
     const start = performance.now();
 
+    const timeout = setTimeout(() => {
+      snackbarInfo(
+        "Your request is being proceeded unusually long, please wait"
+      );
+    }, 5000);
+
     if (!handleValidateLogin()) return;
 
     const saltResponse = await saltRequest(email);
@@ -188,11 +195,13 @@ const LogonComponent = () => {
       console.log(loginRequestResponse);
       snackbarSuccess("Login Success");
 
-      const userData = {
+      const userData: UserDataCookiesInterface = {
         publicKey: loginRequestResponse.publicKey,
-        email: loginRequestResponse.email,
+        email: email,
+        id: loginRequestResponse.id,
         salt: saltResponse.salt,
       };
+      console.log("userData", userData);
 
       Cookies.set("userData", JSON.stringify(userData), {
         expires: 1,
@@ -201,6 +210,8 @@ const LogonComponent = () => {
       const end = performance.now();
       console.log(`Time taken to login: ${end - start}ms`);
       navigate("/");
+
+      clearTimeout(timeout);
     }
   };
 

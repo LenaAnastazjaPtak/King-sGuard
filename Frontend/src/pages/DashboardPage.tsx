@@ -22,31 +22,47 @@ import NewPasswordModal from "../components/NewPasswordModal";
 import DecryptModal from "../components/DecryptModal";
 import useAuth from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import Cookies from "js-cookie";
+import { getUserDataFromCookies, removeUserDataFromCookies } from "../utils";
+import {
+  addCategoryRequest,
+  getCategoriesRequest,
+} from "../services/api/categoriesRequest";
+import {
+  addNewPasswordRequest,
+  getPasswordsRequest,
+} from "../services/api/passwordRequest";
+import useSnackbarHook from "../hooks/useSnackbar";
+import NewCategoryModal from "../components/NewCategoryModal";
 
 const DashboardPage = () => {
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [userDataCookies, setUserDataCookies] =
     useState<UserDataCookiesInterface>();
-  useAuth(() => setIsAuthenticated(true));
-
-  const navigate = useNavigate();
 
   const [search, setSearch] = useState<string>("");
   const [passwords, setPasswords] = useState<PasswordInterface[]>([]);
   const [filteredPasswords, setFilteredPasswords] = useState<
     PasswordInterface[]
   >([]);
+
+  const [passwordToDecrypt, setPasswordToDecrypt] = useState<string>("");
+
   const [isAddPasswordModalOpen, setIsAddPasswordModalOpen] =
     useState<boolean>(false);
   const [isDecryptModalOpen, setIsDecryptModalOpen] = useState<boolean>(false);
-  const [passwordToDecrypt, setPasswordToDecrypt] = useState<string>("");
+  const [isAddNewCategoryModalOpen, setIsAddNewCategoryModalOpen] =
+    useState<boolean>(false);
 
-  const handleAddNewPassword = (
+  const navigate = useNavigate();
+  useAuth(() => setIsAuthenticated(true));
+  const { snackbarError, snackbarSuccess } = useSnackbarHook();
+
+  const handleAddNewPassword = async (
     password: string,
     website: string,
-    username: string
+    username: string,
+    category: string
   ) => {
     if (!userDataCookies || !userDataCookies.publicKey) return;
 
@@ -54,16 +70,54 @@ const DashboardPage = () => {
       userDataCookies.publicKey,
       password
     );
+    if (!encryptedPassword) {
+      snackbarError("Error encrypting password");
+      return;
+    }
+
     const newId = passwords.length + 1;
-    const newPasswords = [
-      ...passwords,
-      { id: newId, password: encryptedPassword, website, username },
-    ];
+
+    const newPassword: PasswordInterface = {
+      id: newId,
+      password: encryptedPassword,
+      website,
+      username,
+      category,
+    };
+
+    const response = await addNewPasswordRequest(
+      website,
+      encryptedPassword,
+      username,
+      userDataCookies.id,
+      "A",
+      userDataCookies.email,
+      "title"
+    );
+
+    console.log(response);
+
+    if (response.status !== 200) {
+      snackbarError("Error saving password");
+      return;
+    }
+
+    snackbarSuccess("Password saved successfully");
+
+    const newPasswords: PasswordInterface[] = [...passwords, newPassword];
     setPasswords(newPasswords);
     setFilteredPasswords(newPasswords);
     setIsAddPasswordModalOpen(false);
-
     //request to backend to save password
+  };
+
+  const handleAddCategory = async (title: string) => {
+    const result = await addCategoryRequest(title);
+
+    if (result.code !== 201) snackbarError(result.title);
+    else snackbarSuccess(result.message);
+
+    return result;
   };
 
   const handleSearch = (str: string) => {
@@ -106,22 +160,28 @@ const DashboardPage = () => {
   };
 
   const handleLogout = () => {
-    Cookies.remove("publicKeyPem");
+    removeUserDataFromCookies();
     navigate("/logon");
   };
 
+  const handleGetUserCategories = async () => {
+    console.log("Getting categories");
+    const categories = await getCategoriesRequest();
+    console.log(categories);
+  };
+
+  const handleGetUserPasswords = async () => {
+    console.log("Getting passwords");
+    if (!userDataCookies || !userDataCookies.id) return;
+
+    const passwords = await getPasswordsRequest(userDataCookies.id);
+    console.log(passwords);
+  };
+
   useEffect(() => {
-    const cookie = Cookies.get("userData");
-    if (!cookie) {
-      navigate("/logon");
-      return;
-    }
-
-    const parsedCookie: UserDataCookiesInterface = JSON.parse(cookie);
-    setUserDataCookies(parsedCookie);
-    //fetch data from backend
-
-    console.log("fetch");
+    const userData = getUserDataFromCookies();
+    if (!userData) return;
+    setUserDataCookies(userData);
     setIsLoaded(true);
   }, []);
 
@@ -148,6 +208,27 @@ const DashboardPage = () => {
           color="secondary"
         >
           ADD NEW PASSWORD
+        </Button>
+        <Button
+          onClick={handleGetUserCategories}
+          variant="contained"
+          color="secondary"
+        >
+          GET CATEGORIES
+        </Button>
+        <Button
+          onClick={handleGetUserPasswords}
+          variant="contained"
+          color="secondary"
+        >
+          GET PASSWORDS
+        </Button>
+        <Button
+          onClick={() => setIsAddNewCategoryModalOpen(true)}
+          variant="contained"
+          color="secondary"
+        >
+          ADD CATEGORY
         </Button>
       </div>
       <div>
@@ -243,6 +324,13 @@ const DashboardPage = () => {
           isModalOpen={isDecryptModalOpen}
           handleClose={() => setIsDecryptModalOpen(false)}
           userDataCookies={userDataCookies}
+        />
+      )}
+      {isAddNewCategoryModalOpen && (
+        <NewCategoryModal
+          isModalOpen={isAddNewCategoryModalOpen}
+          handleClose={() => setIsAddNewCategoryModalOpen(false)}
+          handleAddCategory={handleAddCategory}
         />
       )}
     </main>

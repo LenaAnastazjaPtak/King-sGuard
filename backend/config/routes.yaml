@@ -9,6 +9,9 @@ login:
     controller: App\Controller\UserController::login
     methods: POST
 
+api_login_check:
+    path: /api/login_check
+
 # USERS
 api_users_index:
     path: /api/users

@@ -22,10 +22,12 @@ export interface PasswordInterface {
   password: string;
   id: string | number;
   username: string;
+  category: string;
 }
 
 export interface UserDataCookiesInterface {
-  username: string;
   publicKey: string;
   salt: string;
+  id: string;
+  email: string;
 }
