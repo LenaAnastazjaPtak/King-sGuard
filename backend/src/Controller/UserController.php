@@ -37,7 +37,7 @@ class UserController extends AbstractController
         }
 
         if ($user->getPassword() === $dataJson['password']) {
-            return new JsonResponse(['message' => "{$dataJson['email']} logged in.", 'publicKey' => $user->getPublicKey(), 'code' => 200], Response::HTTP_OK);
+            return new JsonResponse(['message' => "{$dataJson['email']} logged in.", 'publicKey' => $user->getPublicKey(), 'code' => 200, 'id' => $user->getId()], Response::HTTP_OK);
         }
 
         return new JsonResponse(['message' => "Wrong credentials!", 'code' => 401], Response::HTTP_UNAUTHORIZED);
@@ -51,19 +51,7 @@ class UserController extends AbstractController
     public function show(Request $request, EntityManagerInterface $em): JsonResponse
     {
         $data = $request->getContent();
-        $dataJson = json_decode($data, true);
-
-        if (!isset($data['email'])) {
-            return new JsonResponse(['message' => 'Email is required', 'code' => 400], Response::HTTP_BAD_REQUEST);
-        }
-
-        $entity = $em->getRepository(User::class)->findOneBy(['email' => $dataJson['email']]);
-
-        if (!$entity) {
-            return new JsonResponse(['message' => "User with email {$dataJson['email']} not found", 'code' => 404], Response::HTTP_NOT_FOUND);
-        }
-
-        return $this->crudService->show($entity);
+        return $this->crudService->show(User::class, $data);
     }
 
     public function create(Request $request, EntityManagerInterface $em): JsonResponse
