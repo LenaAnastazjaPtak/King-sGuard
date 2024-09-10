@@ -11,6 +11,8 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_SALT', fields: ['salt'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_PUBLIC_KEY', fields: ['publicKey'])]
 class User implements UserInterface,PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -18,7 +20,7 @@ class User implements UserInterface,PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180)]
+    #[ORM\Column(length: 180, unique: true)]
     private ?string $email = null;
 
     /**
@@ -30,13 +32,13 @@ class User implements UserInterface,PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 510)]
     private ?string $password = null;
 
-    #[ORM\Column(length: 510)]
+    #[ORM\Column(length: 510, unique: true)]
     private ?string $publicKey = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $language = 'PL';
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, unique: true)]
     private ?string $salt = null;
 
     /**

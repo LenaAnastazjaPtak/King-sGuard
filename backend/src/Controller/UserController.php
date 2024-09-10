@@ -43,16 +43,31 @@ class UserController extends AbstractController
         return new JsonResponse(['message' => "Wrong credentials!", 'code' => 401], Response::HTTP_UNAUTHORIZED);
     }
 
-    public function index(): JsonResponse
+    public function index(EntityManagerInterface $em): JsonResponse
     {
-        return $this->crudService->index(User::class);
+        $jsonEntities = [];
+        $users = $em->getRepository(User::class)->findAll();
+
+        foreach ($users as $user) {
+            $jsonEntities[] = [
+                'id' => $user->getId(),
+                'email' => $user->getEmail(),
+                'roles' => $user->getRoles(),
+                'password' => $user->getPassword(),
+                'publicKey' => $user->getPublicKey(),
+                'language' => $user->getLanguage(),
+                'salt' => $user->getSalt()
+            ];
+        }
+
+        return new JsonResponse(['message' => $jsonEntities, 'code' => 200], Response::HTTP_OK);
     }
 
-    public function show(Request $request, EntityManagerInterface $em): JsonResponse
-    {
-        $data = $request->getContent();
-        return $this->crudService->show(User::class, $data);
-    }
+//    public function show(Request $request, EntityManagerInterface $em): JsonResponse
+//    {
+//        $data = $request->getContent();
+//        return $this->crudService->show(User::class, $data);
+//    }
 
     public function create(Request $request, EntityManagerInterface $em): JsonResponse
     {
