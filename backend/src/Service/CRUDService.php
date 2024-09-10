@@ -69,7 +69,7 @@ class CRUDService
         $this->serializer->deserialize($data, $entityClass, 'json', [AbstractNormalizer::OBJECT_TO_POPULATE => $entity]);
         $this->entityManager->flush();
 
-        return new JsonResponse(['message' => "$entity updated.", 'code' => 200], Response::HTTP_CREATED);
+        return new JsonResponse(['message' => "Entity with id {$entity->getId()} updated - $entity.", 'code' => 200], Response::HTTP_CREATED);
     }
 
     public function delete(string $entityClass, $entity): JsonResponse

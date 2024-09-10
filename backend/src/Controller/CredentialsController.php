@@ -61,10 +61,10 @@ class CredentialsController extends AbstractController
             return new JsonResponse(['message' => "User with mail {$dataJson['email']} not found.", 'code' => 404], Response::HTTP_NOT_FOUND);
         }
 
-        if (isset($dataJson['category_id'])) {
-            $group = $em->getRepository(Group::class)->findOneBy(['id' => $dataJson['category_id'], 'user' => $user]);
+        if (isset($dataJson['category'])) {
+            $group = $em->getRepository(Group::class)->findOneBy(['title' => $dataJson['category'], 'user' => $user]);
             if (!$group) {
-                return new JsonResponse(['message' => "Group with id {$dataJson['category_id']} for $user not found.", 'code' => 404], Response::HTTP_NOT_FOUND);
+                return new JsonResponse(['message' => "Group with title '{$dataJson['category']}' for $user not found.", 'code' => 404], Response::HTTP_NOT_FOUND);
             }
         }
 
