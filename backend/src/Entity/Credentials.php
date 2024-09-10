@@ -26,7 +26,7 @@ class Credentials
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $notes = null;
 
-    #[ORM\ManyToOne(inversedBy: 'credentials')]
+    #[ORM\ManyToOne(cascade: ["persist"], inversedBy: 'credentials')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Group $category = null;
 
