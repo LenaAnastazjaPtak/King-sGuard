@@ -21,9 +21,38 @@ class CredentialsController extends AbstractController
         $this->crudService = $crudService;
     }
 
-    public function index(): JsonResponse
+    public function index(Request $request, EntityManagerInterface $em): JsonResponse
     {
-        return $this->crudService->index(Credentials::class);
+        $data = $request->getContent();
+        $dataJson = json_decode($data, true);
+
+        if (!isset($dataJson['email'])) {
+            return new JsonResponse(['message' => 'Email is required', 'code' => 400], Response::HTTP_BAD_REQUEST);
+        }
+
+        $user = $em->getRepository(User::class)->findOneBy(['email' => $dataJson['email']]);
+        if (!$user) {
+            return new JsonResponse(['message' => "User with mail {$dataJson['email']} not found.", 'code' => 404], Response::HTTP_NOT_FOUND);
+        }
+
+        $credentialsForUser = $em->getRepository(Credentials::class)->findBy(['user' => $user]);
+
+        $jsonEntities = [];
+
+        foreach ($credentialsForUser as $credential) {
+            $jsonEntities[] = [
+                'id' => $credential->getId(),
+                'title' => $credential->getTitle(),
+                'url' => $credential->getUrl(),
+                'username' => $credential->getUsername(),
+                'notes' => $credential->getNotes(),
+                'category' => $credential->getCategory()?->getTitle(),
+                'password' => $credential->getPassword(),
+                'user' => $credential->getUser()->getEmail()
+            ];
+        }
+
+        return new JsonResponse(['message' => $jsonEntities, 'code' => 200], Response::HTTP_OK);
     }
 
 //    public function show(Request $request): JsonResponse
