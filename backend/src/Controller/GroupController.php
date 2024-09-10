@@ -20,9 +20,34 @@ class GroupController extends AbstractController
         $this->crudService = $crudService;
     }
 
-    public function index(): JsonResponse
+    public function index(Request $request, EntityManagerInterface $em): JsonResponse
     {
-        return $this->crudService->index(Group::class);
+        $data = $request->getContent();
+        $dataJson = json_decode($data, true);
+
+        if (!isset($dataJson['email'])) {
+            return new JsonResponse(['message' => 'Email is required', 'code' => 400], Response::HTTP_BAD_REQUEST);
+        }
+
+        $user = $em->getRepository(User::class)->findOneBy(['email' => $dataJson['email']]);
+        if (!$user) {
+            return new JsonResponse(['message' => "User with mail {$dataJson['email']} not found.", 'code' => 404], Response::HTTP_NOT_FOUND);
+        }
+
+        $groupsForUser = $em->getRepository(Group::class)->findBy(['user' => $user]);
+
+        $jsonEntities = [];
+
+        foreach ($groupsForUser as $group) {
+            $jsonEntities[] = [
+                'id' => $group->getId(),
+                'title' => $group->getTitle(),
+                'user' => $group->getUser()->getEmail(),
+                'uuid' => $group->getUuid()
+            ];
+        }
+
+        return new JsonResponse(['message' => $jsonEntities, 'code' => 200], Response::HTTP_OK);
     }
 
 //    public function show(int $id): JsonResponse

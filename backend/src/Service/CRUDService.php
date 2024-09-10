@@ -46,6 +46,8 @@ class CRUDService
 
             if ($group) {
                 $entity->setCategory($group);
+            } else {
+                $entity->setCategory(null);
             }
         }
 
