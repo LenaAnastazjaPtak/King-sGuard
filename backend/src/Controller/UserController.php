@@ -63,11 +63,11 @@ class UserController extends AbstractController
         return new JsonResponse(['message' => $jsonEntities, 'code' => 200], Response::HTTP_OK);
     }
 
-    public function show(Request $request, EntityManagerInterface $em): JsonResponse
-    {
-        $data = $request->getContent();
-        return $this->crudService->show(User::class, $data);
-    }
+//    public function show(Request $request, EntityManagerInterface $em): JsonResponse
+//    {
+//        $data = $request->getContent();
+//        return $this->crudService->show(User::class, $data);
+//    }
 
     public function create(Request $request, EntityManagerInterface $em): JsonResponse
     {

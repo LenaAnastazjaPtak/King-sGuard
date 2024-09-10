@@ -18,10 +18,10 @@ api_users_index:
     controller: App\Controller\UserController::index
     methods: GET
 
-api_users_show:
-    path: /api/users/get
-    controller: App\Controller\UserController::show
-    methods: POST
+#api_users_show:
+#    path: /api/users/get
+#    controller: App\Controller\UserController::show
+#    methods: POST
 
 api_users_create:
     path: /api/users/create
