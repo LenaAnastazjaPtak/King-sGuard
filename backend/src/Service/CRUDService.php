@@ -22,14 +22,6 @@ class CRUDService
         $this->serializer = $serializer;
     }
 
-    public function index(string $entityClass): JsonResponse
-    {
-        $entities = $this->entityManager->getRepository($entityClass)->findAll();
-        $jsonEntities = $this->serializer->serialize($entities, 'json');
-
-        return new JsonResponse(json_decode($jsonEntities));
-    }
-
     public function show($entity): JsonResponse
     {
         $jsonEntity = $this->serializer->serialize($entity, 'json');
