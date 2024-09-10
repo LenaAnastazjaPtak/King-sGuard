@@ -7,7 +7,7 @@ export const addNewPasswordRequest = async (
   password: string,
   username: string,
   userId: string,
-  category: string,
+  category: null | string,
   email: string,
   title: string
 ) => {

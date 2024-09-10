@@ -13,9 +13,9 @@ export const getCategoriesRequest = async () => {
   return response.data;
 };
 
-export const addCategoryRequest = async (title: string) => {
+export const addCategoryRequest = async (title: string, email: string) => {
   const response = await axios
-    .post(`${BACKEND_URL}/api/groups`, { title })
+    .post(`${BACKEND_URL}/api/groups`, { title, email })
     .catch((error) => {
       console.error("Error adding category: ", error.response.data);
       return error.response;

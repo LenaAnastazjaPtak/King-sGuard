@@ -69,7 +69,7 @@ class GroupController extends AbstractController
 
         $entity = $em->getRepository(Group::class)->findOneBy(['title' => $dataJson['title'], 'user' => $user]);
         if ($entity) {
-            return new JsonResponse(['message' => "Group with title '{$dataJson['title']}' for user {$user} already exists.", 'code' => 400], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => "Group with title '{$dataJson['title']}' already exists.", 'code' => 400], Response::HTTP_BAD_REQUEST);
         }
 
         return $this->crudService->create(Group::class, $data, $user);
@@ -95,12 +95,12 @@ class GroupController extends AbstractController
 
         $entity = $em->getRepository(Group::class)->findOneBy(['id' => $id, 'user' => $user]);
         if (!$entity) {
-            return new JsonResponse(['message' => "Group with id $id for user $user not found.", 'code' => 404], Response::HTTP_NOT_FOUND);
+            return new JsonResponse(['message' => "Group with id $id not found.", 'code' => 404], Response::HTTP_NOT_FOUND);
         }
 
         $other = $em->getRepository(Group::class)->findOneBy(['title' => $dataJson['title'], 'user' => $user]);
         if ($other) {
-            return new JsonResponse(['message' => "Group with title {$dataJson['title']} for user $user already exists.", 'code' => 400], Response::HTTP_NOT_FOUND);
+            return new JsonResponse(['message' => "Group with title {$dataJson['title']} already exists.", 'code' => 400], Response::HTTP_NOT_FOUND);
         }
 
         return $this->crudService->update(Group::class, $data, $entity);
@@ -122,7 +122,7 @@ class GroupController extends AbstractController
 
         $entity = $em->getRepository(Group::class)->findOneBy(['id' => $id, 'user' => $user]);
         if (!$entity) {
-            return new JsonResponse(['message' => "Group with id $id for user $user not found.", 'code' => 404], Response::HTTP_NOT_FOUND);
+            return new JsonResponse(['message' => "Group with id $id not found.", 'code' => 404], Response::HTTP_NOT_FOUND);
         }
 
         return $this->crudService->delete(Group::class, $entity);

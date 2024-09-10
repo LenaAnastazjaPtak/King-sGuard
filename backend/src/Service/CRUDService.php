@@ -45,7 +45,7 @@ class CRUDService
         $this->entityManager->flush();
 
         $response = [
-            'message' => sprintf('%s created.', $entityClass),
+            'message' => sprintf("'{$entity}' created.", ),
             'code' => Response::HTTP_CREATED
         ];
 

@@ -81,13 +81,13 @@ class CredentialsController extends AbstractController
 
         $entity = $em->getRepository(Credentials::class)->findOneBy(['title' => $dataJson['title'], 'user' => $user]);
         if ($entity) {
-            return new JsonResponse(['message' => "Credential with title '[{$dataJson['title']}' for user {$user} already exists.", 'code' => 400], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => "Credential with title '[{$dataJson['title']}' already exists.", 'code' => 400], Response::HTTP_BAD_REQUEST);
         }
 
         if (isset($dataJson['category'])) {
             $group = $em->getRepository(Group::class)->findOneBy(['title' => $dataJson['category'], 'user' => $user]);
             if (!$group) {
-                return new JsonResponse(['message' => "Group with title '{$dataJson['category']}' for $user not found.", 'code' => 404], Response::HTTP_NOT_FOUND);
+                return new JsonResponse(['message' => "Group with title '{$dataJson['category']}' not found.", 'code' => 404], Response::HTTP_NOT_FOUND);
             }
         }
 
@@ -113,7 +113,7 @@ class CredentialsController extends AbstractController
 
         $entity = $em->getRepository(Credentials::class)->findOneBy(['title' => $dataJson['title'],'user' => $user]);
         if (!$entity) {
-            return new JsonResponse(['message' => "Credential with title {$dataJson['title']} for user $user not found.", 'code' => 404], Response::HTTP_NOT_FOUND);
+            return new JsonResponse(['message' => "Credential with title {$dataJson['title']} not found.", 'code' => 404], Response::HTTP_NOT_FOUND);
         }
 
         return $this->crudService->update(Credentials::class, $data, $entity);
@@ -139,7 +139,7 @@ class CredentialsController extends AbstractController
 
         $entity = $em->getRepository(Credentials::class)->findOneBy(['title' => $dataJson['title'], 'user' => $user]);
         if (!$entity) {
-            return new JsonResponse(['message' => "Credential with title {$dataJson['title']} for user $user not found.", 'code' => 404], Response::HTTP_NOT_FOUND);
+            return new JsonResponse(['message' => "Credential with title {$dataJson['title']} not found.", 'code' => 404], Response::HTTP_NOT_FOUND);
         }
 
         return $this->crudService->delete(Credentials::class, $entity);

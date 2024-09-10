@@ -90,14 +90,14 @@ const DashboardPage = () => {
       encryptedPassword,
       username,
       userDataCookies.id,
-      "A",
+      null,
       userDataCookies.email,
       "title"
     );
 
     console.log(response);
 
-    if (response.status !== 200) {
+    if (response.code !== 201) {
       snackbarError("Error saving password");
       return;
     }
@@ -112,9 +112,10 @@ const DashboardPage = () => {
   };
 
   const handleAddCategory = async (title: string) => {
-    const result = await addCategoryRequest(title);
+    if (!userDataCookies || !userDataCookies.email) return;
+    const result = await addCategoryRequest(title, userDataCookies.email);
 
-    if (result.code !== 201) snackbarError(result.title);
+    if (result.code !== 201) snackbarError(result.message);
     else snackbarSuccess(result.message);
 
     return result;
