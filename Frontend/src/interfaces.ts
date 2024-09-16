@@ -20,9 +20,20 @@ export const columns: readonly ColumnInterface[] = [
 export interface PasswordInterface {
   website: string;
   password: string;
-  id: string | number;
+  id: string;
   username: string;
-  category: string;
+  category: string | null;
+  categoryId: string | null;
+  notes: string | null;
+  title: string;
+  user: string;
+}
+
+export interface CategoryInterface {
+  title: string;
+  id: string;
+  user: string;
+  uuid: string;
 }
 
 export interface UserDataCookiesInterface {
