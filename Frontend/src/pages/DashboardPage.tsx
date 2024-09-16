@@ -3,6 +3,7 @@ import "../App.css";
 import {
   decryptPassword,
   encryptPassword,
+  generateKeyPairFromString,
   verifyMasterPassword,
 } from "../crypt";
 import {
@@ -17,7 +18,11 @@ import {
   TableRow,
   TextField,
 } from "@mui/material";
-import { PasswordInterface, UserDataCookiesInterface } from "../interfaces";
+import {
+  CategoryInterface,
+  PasswordInterface,
+  UserDataCookiesInterface,
+} from "../interfaces";
 import NewPasswordModal from "../components/NewPasswordModal";
 import DecryptModal from "../components/DecryptModal";
 import useAuth from "../hooks/useAuth";
@@ -34,6 +39,18 @@ import {
 import useSnackbarHook from "../hooks/useSnackbar";
 import NewCategoryModal from "../components/NewCategoryModal";
 
+const INITIAL_PASSWORD_TO_DECRYPT: PasswordInterface = {
+  id: "0",
+  password: "",
+  website: "",
+  username: "",
+  categoryId: null,
+  category: null,
+  notes: null,
+  title: "",
+  user: "",
+};
+
 const DashboardPage = () => {
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -42,11 +59,14 @@ const DashboardPage = () => {
 
   const [search, setSearch] = useState<string>("");
   const [passwords, setPasswords] = useState<PasswordInterface[]>([]);
+  const [categories, setCategories] = useState<CategoryInterface[]>([]);
   const [filteredPasswords, setFilteredPasswords] = useState<
     PasswordInterface[]
   >([]);
 
-  const [passwordToDecrypt, setPasswordToDecrypt] = useState<string>("");
+  const [passwordToDecrypt, setPasswordToDecrypt] = useState<PasswordInterface>(
+    INITIAL_PASSWORD_TO_DECRYPT
+  );
 
   const [isAddPasswordModalOpen, setIsAddPasswordModalOpen] =
     useState<boolean>(false);
@@ -62,7 +82,8 @@ const DashboardPage = () => {
     password: string,
     website: string,
     username: string,
-    category: string
+    category: string | null,
+    title: string
   ) => {
     if (!userDataCookies || !userDataCookies.publicKey) return;
 
@@ -78,11 +99,15 @@ const DashboardPage = () => {
     const newId = passwords.length + 1;
 
     const newPassword: PasswordInterface = {
-      id: newId,
+      id: newId.toString(),
       password: encryptedPassword,
       website,
       username,
       category,
+      categoryId: categories.find((cat) => cat.title === category)?.id || null,
+      notes: null,
+      title,
+      user: "",
     };
 
     const response = await addNewPasswordRequest(
@@ -90,9 +115,9 @@ const DashboardPage = () => {
       encryptedPassword,
       username,
       userDataCookies.id,
-      null,
+      category,
       userDataCookies.email,
-      "title2"
+      title
     );
 
     console.log(response);
@@ -115,18 +140,27 @@ const DashboardPage = () => {
     if (!userDataCookies || !userDataCookies.email) return;
     const result = await addCategoryRequest(title, userDataCookies.email);
 
-    if (result.code !== 201) snackbarError(result.message);
-    else snackbarSuccess(result.message);
+    if (result.code === 201) {
+      snackbarSuccess(result.message);
+      const newCategory: CategoryInterface = {
+        id: result.id,
+        title,
+        user: userDataCookies.email,
+        uuid: result.uuid,
+      };
+      setCategories([...categories, newCategory]);
+    } else snackbarError(result.message);
 
     return result;
   };
 
   const handleSearch = (str: string) => {
     setSearch(str);
-
+    console.log(str);
     const localFilteredPasswords = passwords.filter(
       (pass) =>
-        pass.website.toLowerCase().includes(str.toLowerCase()) ||
+        (pass.website &&
+          pass.website.toLowerCase().includes(str.toLowerCase())) ||
         pass.username.toLowerCase().includes(str.toLowerCase())
     );
 
@@ -154,9 +188,12 @@ const DashboardPage = () => {
     return decrypted;
   };
 
-  const handleDecryptPasswordButton = (password: string) => {
-    console.log(password);
-    setPasswordToDecrypt(password);
+  const handleDecryptPasswordButton = (passwordId: string) => {
+    const passwordToDecryptLocal = passwords.find(
+      (pass) => pass.id === passwordId
+    );
+    console.log("passwordToDecryptLocal", passwordToDecryptLocal);
+    setPasswordToDecrypt(passwordToDecryptLocal || INITIAL_PASSWORD_TO_DECRYPT);
     setIsDecryptModalOpen(true);
   };
 
@@ -167,26 +204,63 @@ const DashboardPage = () => {
 
   const handleGetUserCategories = async () => {
     console.log("Getting categories");
-    const categories = await getCategoriesRequest();
+    if (!userDataCookies || !userDataCookies.email) return;
+    const categories = await getCategoriesRequest(userDataCookies.email);
     console.log(categories);
   };
 
   const handleGetUserPasswords = async () => {
     console.log("Getting passwords");
-    if (!userDataCookies || !userDataCookies.id) return;
-
-    const passwords = await getPasswordsRequest(
-      // userDataCookies.id,
-      userDataCookies.email
-    );
+    if (!userDataCookies || !userDataCookies.email) return;
+    const passwords = await getPasswordsRequest(userDataCookies.email);
     console.log(passwords);
   };
 
+  const handleCheck = () => {
+    console.log("Check");
+    const { publicKeyPem } = generateKeyPairFromString(
+      "x",
+      userDataCookies!.salt
+    );
+    console.log(publicKeyPem);
+    console.log(userDataCookies!.publicKey);
+    console.log(publicKeyPem === userDataCookies!.publicKey);
+  };
+
   useEffect(() => {
-    const userData = getUserDataFromCookies();
-    if (!userData) return;
-    setUserDataCookies(userData);
-    setIsLoaded(true);
+    const init = async () => {
+      const userData = getUserDataFromCookies();
+      if (!userData) return;
+      const promises = await Promise.all([
+        getPasswordsRequest(userData.email),
+        getCategoriesRequest(userData.email),
+      ]);
+      if (!promises) return;
+      const [passwordsResponse, categoriesResponse] = promises;
+      console.log("categories", categoriesResponse);
+
+      const passwords = passwordsResponse.message.map((password: any) => {
+        return {
+          id: password.id as string,
+          website: password.url,
+          password: password.password,
+          category: password.category,
+          categoryId: password.categoryId,
+          notes: password.notes,
+          title: password.title,
+          email: password.user,
+          username: password.username,
+        };
+      });
+      console.log("passwords", passwords);
+
+      setCategories(categoriesResponse.message);
+      setPasswords(passwords);
+      setFilteredPasswords(passwords);
+      setUserDataCookies(userData);
+      setIsLoaded(true);
+    };
+    init();
   }, []);
 
   if (!isLoaded || !isAuthenticated || !userDataCookies) {
@@ -202,6 +276,10 @@ const DashboardPage = () => {
       <div>
         <Button onClick={handleLogout} variant="outlined" color="secondary">
           Logout
+        </Button>
+
+        <Button onClick={handleCheck} variant="outlined" color="secondary">
+          Verify Key
         </Button>
 
         <Button
@@ -260,8 +338,11 @@ const DashboardPage = () => {
                 <TableCell align="center" style={{ width: "20%" }}>
                   Website
                 </TableCell>
-                <TableCell align="center" style={{ width: "50%" }}>
+                <TableCell align="center" style={{ width: "30%" }}>
                   Password
+                </TableCell>
+                <TableCell align="center" style={{ width: "20%" }}>
+                  Category
                 </TableCell>
                 <TableCell align="center" style={{ width: "20%" }}>
                   Decrypt
@@ -295,9 +376,12 @@ const DashboardPage = () => {
                       {row.password}
                     </p>
                   </TableCell>
+                  <TableCell component="th" scope="row">
+                    {row.category}
+                  </TableCell>
                   <TableCell align="center">
                     <Button
-                      onClick={() => handleDecryptPasswordButton(row.password)}
+                      onClick={() => handleDecryptPasswordButton(row.id)}
                       variant="contained"
                       color="secondary"
                     >
@@ -318,6 +402,7 @@ const DashboardPage = () => {
         <NewPasswordModal
           isModalOpen={isAddPasswordModalOpen}
           handleClose={() => setIsAddPasswordModalOpen(false)}
+          categories={categories}
           handleSave={handleAddNewPassword}
         />
       )}

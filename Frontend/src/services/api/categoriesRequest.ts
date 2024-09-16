@@ -2,9 +2,11 @@ import axios from "axios";
 import { getBackendURL } from "../../utils";
 const BACKEND_URL = getBackendURL();
 
-export const getCategoriesRequest = async () => {
+export const getCategoriesRequest = async (email: string) => {
   const response = await axios
-    .get(`${BACKEND_URL}/api/groups`)
+    .post(`${BACKEND_URL}/api/groups/get`, {
+      email,
+    })
     .catch((error) => {
       console.error("Error fetching data: ", error);
       return error;

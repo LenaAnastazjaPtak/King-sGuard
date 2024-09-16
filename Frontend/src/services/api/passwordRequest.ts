@@ -13,7 +13,7 @@ export const addNewPasswordRequest = async (
 ) => {
   const response = await axios
     .post(`${BACKEND_URL}/api/credentials`, {
-      website,
+      url: website,
       password,
       username,
       userId,
