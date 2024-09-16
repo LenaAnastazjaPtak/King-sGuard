@@ -1,11 +1,11 @@
 import { Box, Button, Modal, TextField } from "@mui/material";
 import { useEffect, useState, useRef } from "react";
-import { UserDataCookiesInterface } from "../interfaces";
+import { PasswordInterface, UserDataCookiesInterface } from "../interfaces";
 import Cookies from "js-cookie";
 import { LoadingButton } from "@mui/lab";
 
 type Props = {
-  password: string;
+  password: PasswordInterface;
   handleDecryptPassword: (
     masterPassword: string,
     salt: string,
@@ -55,12 +55,14 @@ const DecryptModal = ({
   const [isProceedingRequest, setIsProceedingRequest] =
     useState<boolean>(false);
 
+  console.log(password);
+
   const handleLocalDecrypt = () => {
     const result = handleDecryptPassword(
       localMasterPassword,
       userDataCookies.salt,
       userDataCookies.publicKey,
-      password
+      password.password
     );
 
     if (result) {
@@ -97,8 +99,12 @@ const DecryptModal = ({
       sx={{}}
     >
       <Box sx={style}>
-        <h3>Encrypted Password</h3>
-        <p style={paragraphStyle}>{password}</p>
+        <h4>
+          Website <p style={paragraphStyle}>{password.website}</p>
+        </h4>
+        <h4>Title {password.title}</h4>
+        <h4>Encrypted Password</h4>
+        <p style={paragraphStyle}>{password.password}</p>
         <h3>Master Password</h3>
         <TextField
           id="outlined-error-helper-text"
