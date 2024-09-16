@@ -1,7 +1,17 @@
-import { Box, Button, Modal, TextField } from "@mui/material";
+import {
+  Box,
+  Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Modal,
+  Select,
+  TextField,
+} from "@mui/material";
 import { useState } from "react";
 import CustomSwitch from "./CustomSwitch";
 import PasswordGenerator from "./PasswordGenerator";
+import { CategoryInterface } from "../interfaces";
 
 type Props = {
   isModalOpen: boolean;
@@ -10,8 +20,10 @@ type Props = {
     password: string,
     website: string,
     username: string,
-    category: string
+    category: string | null,
+    title: string
   ) => void;
+  categories: CategoryInterface[];
 };
 
 const style = {
@@ -31,7 +43,12 @@ const style = {
   gap: "1.5rem",
 };
 
-const NewPasswordModal = ({ isModalOpen, handleClose, handleSave }: Props) => {
+const NewPasswordModal = ({
+  isModalOpen,
+  handleClose,
+  handleSave,
+  categories,
+}: Props) => {
   const [password, setPassword] = useState<string>("");
   const [website, setWebsite] = useState<string>("");
   const [title, setTitle] = useState<string>("");
@@ -40,6 +57,7 @@ const NewPasswordModal = ({ isModalOpen, handleClose, handleSave }: Props) => {
   const [websiteError, setWebsiteError] = useState<string>("");
   const [titleError, setTitleError] = useState<string>("");
   const [passwordError, setPasswordError] = useState<string>("");
+  const [category, setCategory] = useState<string>("None");
 
   const handleAddNewPassword = () => {
     if (website === "") {
@@ -55,7 +73,8 @@ const NewPasswordModal = ({ isModalOpen, handleClose, handleSave }: Props) => {
       return;
     }
 
-    handleSave(password, website, username, "1");
+    const localCategory = category === "None" ? null : category;
+    handleSave(password, website, username, localCategory, title);
   };
 
   const handleChangeWebsite = (value: string) => {
@@ -71,6 +90,10 @@ const NewPasswordModal = ({ isModalOpen, handleClose, handleSave }: Props) => {
   const handleChangePassword = (value: string) => {
     setPassword(value);
     setPasswordError(value === "" ? "Password Cannot Be Empty" : "");
+  };
+
+  const handleChangeCategory = (value: string) => {
+    setCategory(value);
   };
 
   const handleChangePasswordSource = (value: string) => {
@@ -113,6 +136,26 @@ const NewPasswordModal = ({ isModalOpen, handleClose, handleSave }: Props) => {
             onChange={(e) => setUsername(e.target.value)}
             color="secondary"
           />
+          <FormControl variant="outlined" color="secondary" fullWidth>
+            <InputLabel id="demo-simple-select-helper-label">
+              Category
+            </InputLabel>
+            <Select
+              value={category}
+              onChange={(e) => handleChangeCategory(e.target.value as string)}
+              variant="outlined"
+              color="secondary"
+              label="Category"
+              fullWidth
+            >
+              {categories.map((category) => (
+                <MenuItem key={category.id} value={category.title}>
+                  {category.title}
+                </MenuItem>
+              ))}
+              <MenuItem value="None">None</MenuItem>
+            </Select>
+          </FormControl>
           <CustomSwitch
             options={["Your Password", "Generated Password"]}
             selected={passwordSource}
