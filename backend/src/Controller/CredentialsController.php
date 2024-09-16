@@ -47,6 +47,7 @@ class CredentialsController extends AbstractController
                 'username' => $credential->getUsername(),
                 'notes' => $credential->getNotes(),
                 'category' => $credential->getCategory()?->getTitle(),
+                'categoryId' => $credential->getCategory()?->getId(), 
                 'password' => $credential->getPassword(),
                 'user' => $credential->getUser()->getEmail()
             ];

@@ -31,7 +31,7 @@ export const addNewPasswordRequest = async (
 
 export const getPasswordsRequest = async (email: string) => {
   const response = await axios
-    .get(`${BACKEND_URL}/api/credentials/`, {
+    .post(`${BACKEND_URL}/api/credentials/get`, {
       email,
     })
     .catch((error) => {

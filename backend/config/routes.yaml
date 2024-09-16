@@ -1,22 +1,22 @@
 controllers:
-    resource:
-        path: ../src/Controller/
-        namespace: App\Controller
-    type: attribute
+  resource:
+    path: ../src/Controller/
+    namespace: App\Controller
+  type: attribute
 
 login:
-    path: /login
-    controller: App\Controller\UserController::login
-    methods: POST
+  path: /login
+  controller: App\Controller\UserController::login
+  methods: POST
 
 api_login_check:
-    path: /api/login_check
+  path: /api/login_check
 
 # USERS
 api_users_index:
-    path: /api/users
-    controller: App\Controller\UserController::index
-    methods: GET
+  path: /api/users
+  controller: App\Controller\UserController::index
+  methods: GET
 
 #api_users_show:
 #    path: /api/users/get
@@ -24,30 +24,30 @@ api_users_index:
 #    methods: POST
 
 api_users_create:
-    path: /api/users/create
-    controller: App\Controller\UserController::create
-    methods: POST
+  path: /api/users/create
+  controller: App\Controller\UserController::create
+  methods: POST
 
 api_users_update:
-    path: /api/users/update
-    controller: App\Controller\UserController::update
-    methods: POST
+  path: /api/users/update
+  controller: App\Controller\UserController::update
+  methods: POST
 
 api_users_delete:
-    path: /api/users
-    controller: App\Controller\UserController::delete
-    methods: DELETE
+  path: /api/users
+  controller: App\Controller\UserController::delete
+  methods: DELETE
 
 api_users_salt:
-    path: /api/salt
-    controller: App\Controller\UserController::getSaltByUser
-    methods: POST
+  path: /api/salt
+  controller: App\Controller\UserController::getSaltByUser
+  methods: POST
 
 # CREDENTIALS
 api_credentials_index:
-    path: /api/credentials
-    controller: App\Controller\CredentialsController::index
-    methods: GET
+  path: /api/credentials/get
+  controller: App\Controller\CredentialsController::index
+  methods: POST
 
 #api_credentials_show:
 #    path: /api/credentials
@@ -55,25 +55,25 @@ api_credentials_index:
 #    methods: GET
 
 api_credentials_create:
-    path: /api/credentials
-    controller: App\Controller\CredentialsController::create
-    methods: POST
+  path: /api/credentials
+  controller: App\Controller\CredentialsController::create
+  methods: POST
 
 api_credentials_update:
-    path: /api/credentials/update
-    controller: App\Controller\CredentialsController::update
-    methods: PUT
+  path: /api/credentials/update
+  controller: App\Controller\CredentialsController::update
+  methods: PUT
 
 api_credentials_delete:
-    path: /api/credentials
-    controller: App\Controller\CredentialsController::delete
-    methods: DELETE
+  path: /api/credentials
+  controller: App\Controller\CredentialsController::delete
+  methods: DELETE
 
 # GROUP
 api_groups_index:
-    path: /api/groups
-    controller: App\Controller\GroupController::index
-    methods: GET
+  path: /api/groups/get
+  controller: App\Controller\GroupController::index
+  methods: POST
 
 #api_groups_show:
 #    path: /api/groups/{id}
@@ -83,20 +83,20 @@ api_groups_index:
 #        id: '\d+'
 
 api_groups_create:
-    path: /api/groups
-    controller: App\Controller\GroupController::create
-    methods: POST
+  path: /api/groups
+  controller: App\Controller\GroupController::create
+  methods: POST
 
 api_groups_update:
-    path: /api/groups/{id}
-    controller: App\Controller\GroupController::update
-    methods: PUT
-    requirements:
-        id: '\d+'
+  path: /api/groups/{id}
+  controller: App\Controller\GroupController::update
+  methods: PUT
+  requirements:
+    id: '\d+'
 
 api_groups_delete:
-    path: /api/groups/{id}
-    controller: App\Controller\GroupController::delete
-    methods: DELETE
-    requirements:
-        id: '\d+'
+  path: /api/groups/{id}
+  controller: App\Controller\GroupController::delete
+  methods: DELETE
+  requirements:
+    id: '\d+'
