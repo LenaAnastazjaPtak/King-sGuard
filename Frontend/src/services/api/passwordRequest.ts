@@ -29,12 +29,10 @@ export const addNewPasswordRequest = async (
   return response.data;
 };
 
-export const getPasswordsRequest = async (userId: string) => {
+export const getPasswordsRequest = async (email: string) => {
   const response = await axios
     .get(`${BACKEND_URL}/api/credentials/`, {
-      params: {
-        id: userId,
-      },
+      email,
     })
     .catch((error) => {
       console.error(error.response);

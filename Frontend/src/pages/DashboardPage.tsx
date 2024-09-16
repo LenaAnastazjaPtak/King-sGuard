@@ -92,7 +92,7 @@ const DashboardPage = () => {
       userDataCookies.id,
       null,
       userDataCookies.email,
-      "title"
+      "title2"
     );
 
     console.log(response);
@@ -175,7 +175,10 @@ const DashboardPage = () => {
     console.log("Getting passwords");
     if (!userDataCookies || !userDataCookies.id) return;
 
-    const passwords = await getPasswordsRequest(userDataCookies.id);
+    const passwords = await getPasswordsRequest(
+      // userDataCookies.id,
+      userDataCookies.email
+    );
     console.log(passwords);
   };
 

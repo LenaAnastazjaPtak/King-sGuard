@@ -34,9 +34,11 @@ const style = {
 const NewPasswordModal = ({ isModalOpen, handleClose, handleSave }: Props) => {
   const [password, setPassword] = useState<string>("");
   const [website, setWebsite] = useState<string>("");
+  const [title, setTitle] = useState<string>("");
   const [username, setUsername] = useState<string>("");
   const [passwordSource, setPasswordSource] = useState<string>("Your Password");
   const [websiteError, setWebsiteError] = useState<string>("");
+  const [titleError, setTitleError] = useState<string>("");
   const [passwordError, setPasswordError] = useState<string>("");
 
   const handleAddNewPassword = () => {
@@ -48,12 +50,22 @@ const NewPasswordModal = ({ isModalOpen, handleClose, handleSave }: Props) => {
       setPasswordError("Password Cannot Be Empty");
       return;
     }
+    if (title === "") {
+      setTitleError("Title Cannot Be Empty");
+      return;
+    }
+
     handleSave(password, website, username, "1");
   };
 
   const handleChangeWebsite = (value: string) => {
     setWebsite(value);
     setWebsiteError(value === "" ? "Website Cannot Be Empty" : "");
+  };
+
+  const handleChangeTitle = (value: string) => {
+    setTitle(value);
+    setTitleError(value === "" ? "Title Cannot Be Empty" : "");
   };
 
   const handleChangePassword = (value: string) => {
@@ -83,6 +95,15 @@ const NewPasswordModal = ({ isModalOpen, handleClose, handleSave }: Props) => {
             value={website}
             onChange={(e) => handleChangeWebsite(e.target.value)}
             error={websiteError !== ""}
+            color="secondary"
+          />
+          <TextField
+            label="Title"
+            placeholder="Your Title"
+            helperText={titleError}
+            value={title}
+            onChange={(e) => handleChangeTitle(e.target.value)}
+            error={titleError !== ""}
             color="secondary"
           />
           <TextField
