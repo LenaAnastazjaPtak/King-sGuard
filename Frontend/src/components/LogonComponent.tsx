@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, createRef } from "react";
 import CustomSwitch from "./CustomSwitch";
-// import ReCAPTCHA from "react-google-recaptcha";
+import ReCAPTCHA from "react-google-recaptcha";
 import Cookies from "js-cookie";
 
 import { Button, TextField, FormControl, Paper } from "@mui/material";
@@ -41,7 +41,7 @@ const INITIAL_ERROR_STATE: ErrorInterface = {
 };
 
 const LogonComponent = () => {
-  // const captchaRef = createRef<ReCAPTCHA>();
+  const captchaRef = createRef<ReCAPTCHA>();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [passwordConfirmation, setPasswordConfirmation] = useState<string>("");
@@ -330,11 +330,11 @@ const LogonComponent = () => {
             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
           />
         )}
-        {/* <ReCAPTCHA
+        <ReCAPTCHA
           sitekey={import.meta.env.VITE_SITE_KEY}
           ref={captchaRef}
           isolated={true}
-        /> */}
+        />
         {!isProceedingRequest ? (
           <Button
             onClick={handleSubmit}

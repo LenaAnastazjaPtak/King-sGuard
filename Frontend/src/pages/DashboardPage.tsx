@@ -175,6 +175,7 @@ const DashboardPage = () => {
       return;
     }
 
+    const localCategory = category === "None" ? null : category;
     let localFilteredPasswords: PasswordInterface[] = [];
 
     if (category === "-") {
@@ -188,14 +189,14 @@ const DashboardPage = () => {
 
     if (search === "") {
       localFilteredPasswords = passwords.filter(
-        (pass) => pass.category === category
+        (pass) => pass.category === localCategory
       );
     }
 
     if (category !== "-" && search !== "") {
       localFilteredPasswords = passwords.filter(
         (pass) =>
-          pass.category === category &&
+          pass.category === localCategory &&
           ((pass.website &&
             pass.website.toLowerCase().includes(search.toLowerCase())) ||
             pass.username.toLowerCase().includes(search.toLowerCase()))
@@ -306,11 +307,14 @@ const DashboardPage = () => {
 
   return (
     <main style={{ width: "1000px" }}>
-      <div>
-        <Button onClick={handleLogout} variant="outlined" color="secondary">
-          Logout
-        </Button>
-
+      <div
+        style={{
+          display: "flex",
+          gap: "1rem",
+          justifyContent: "flex-end",
+          marginRight: "1rem",
+        }}
+      >
         {/* <Button onClick={handleCheck} variant="outlined" color="secondary">
           Verify Key
         </Button> */}
@@ -344,6 +348,9 @@ const DashboardPage = () => {
           color="secondary"
         >
           ADD CATEGORY
+        </Button>
+        <Button onClick={handleLogout} variant="outlined" color="secondary">
+          Logout
         </Button>
       </div>
       <div
@@ -383,7 +390,7 @@ const DashboardPage = () => {
                 {category.title}
               </MenuItem>
             ))}
-            <MenuItem value="None">None</MenuItem>
+            <MenuItem value="None">Uncategorized</MenuItem>
             <MenuItem value="-">No Filters</MenuItem>
           </Select>
         </FormControl>
