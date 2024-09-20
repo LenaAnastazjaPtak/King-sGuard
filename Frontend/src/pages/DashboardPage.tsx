@@ -9,7 +9,11 @@ import {
 import {
   Button,
   CircularProgress,
+  FormControl,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   Table,
   TableBody,
   TableCell,
@@ -60,6 +64,7 @@ const DashboardPage = () => {
   const [search, setSearch] = useState<string>("");
   const [passwords, setPasswords] = useState<PasswordInterface[]>([]);
   const [categories, setCategories] = useState<CategoryInterface[]>([]);
+  const [filteredCategory, setFilteredCategory] = useState<string>("-");
   const [filteredPasswords, setFilteredPasswords] = useState<
     PasswordInterface[]
   >([]);
@@ -156,15 +161,54 @@ const DashboardPage = () => {
 
   const handleSearch = (str: string) => {
     setSearch(str);
-    console.log(str);
-    const localFilteredPasswords = passwords.filter(
-      (pass) =>
-        (pass.website &&
-          pass.website.toLowerCase().includes(str.toLowerCase())) ||
-        pass.username.toLowerCase().includes(str.toLowerCase())
-    );
+    handleFilterPasswords(filteredCategory, str);
+  };
+
+  const handleChangeFilteredCategory = (category: string) => {
+    setFilteredCategory(category);
+    handleFilterPasswords(category, search);
+  };
+
+  const handleFilterPasswords = (category: string, search: string) => {
+    if (category === "-" && search === "") {
+      setFilteredPasswords(passwords);
+      return;
+    }
+
+    let localFilteredPasswords: PasswordInterface[] = [];
+
+    if (category === "-") {
+      localFilteredPasswords = passwords.filter(
+        (pass) =>
+          (pass.website &&
+            pass.website.toLowerCase().includes(search.toLowerCase())) ||
+          pass.username.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    if (search === "") {
+      localFilteredPasswords = passwords.filter(
+        (pass) => pass.category === category
+      );
+    }
+
+    if (category !== "-" && search !== "") {
+      localFilteredPasswords = passwords.filter(
+        (pass) =>
+          pass.category === category &&
+          ((pass.website &&
+            pass.website.toLowerCase().includes(search.toLowerCase())) ||
+            pass.username.toLowerCase().includes(search.toLowerCase()))
+      );
+    }
 
     setFilteredPasswords(localFilteredPasswords);
+  };
+
+  const clearSearch = () => {
+    setSearch("");
+    setFilteredCategory("-");
+    setFilteredPasswords(passwords);
   };
 
   const handleDecryptPassword = (
@@ -278,9 +322,9 @@ const DashboardPage = () => {
           Logout
         </Button>
 
-        <Button onClick={handleCheck} variant="outlined" color="secondary">
+        {/* <Button onClick={handleCheck} variant="outlined" color="secondary">
           Verify Key
-        </Button>
+        </Button> */}
 
         <Button
           onClick={() => {
@@ -291,20 +335,20 @@ const DashboardPage = () => {
         >
           ADD NEW PASSWORD
         </Button>
-        <Button
+        {/* <Button
           onClick={handleGetUserCategories}
           variant="contained"
           color="secondary"
         >
           GET CATEGORIES
-        </Button>
-        <Button
+        </Button> */}
+        {/* <Button
           onClick={handleGetUserPasswords}
           variant="contained"
           color="secondary"
         >
           GET PASSWORDS
-        </Button>
+        </Button> */}
         <Button
           onClick={() => setIsAddNewCategoryModalOpen(true)}
           variant="contained"
@@ -313,7 +357,14 @@ const DashboardPage = () => {
           ADD CATEGORY
         </Button>
       </div>
-      <div>
+      <div
+        style={{
+          display: "flex",
+          gap: "1rem",
+          justifyContent: "flex-end",
+          margin: "1rem",
+        }}
+      >
         <TextField
           type="text"
           sx={{ color: "white" }}
@@ -323,6 +374,33 @@ const DashboardPage = () => {
           value={search}
           onChange={(e) => handleSearch(e.target.value)}
         />
+        <FormControl
+          variant="outlined"
+          color="secondary"
+          sx={{ width: "200px" }}
+        >
+          <InputLabel id="demo-simple-select-helper-label">Category</InputLabel>
+          <Select
+            value={filteredCategory}
+            onChange={(e) =>
+              handleChangeFilteredCategory(e.target.value as string)
+            }
+            variant="outlined"
+            color="secondary"
+            label="Category"
+          >
+            {categories.map((category) => (
+              <MenuItem key={category.id} value={category.title}>
+                {category.title}
+              </MenuItem>
+            ))}
+            <MenuItem value="None">None</MenuItem>
+            <MenuItem value="-">No Filters</MenuItem>
+          </Select>
+        </FormControl>
+        <Button variant="contained" color="error" onClick={clearSearch}>
+          Clear Search
+        </Button>
       </div>
       {filteredPasswords.length > 0 ? (
         <TableContainer component={Paper}>
@@ -332,54 +410,84 @@ const DashboardPage = () => {
           >
             <TableHead>
               <TableRow>
-                <TableCell align="center" style={{ width: "10%" }}>
+                <TableCell align="center" sx={{ width: "10%" }}>
                   ID
                 </TableCell>
-                <TableCell align="center" style={{ width: "20%" }}>
+                <TableCell align="center" sx={{ width: "20%" }}>
+                  Nick
+                </TableCell>
+                <TableCell align="center" sx={{ width: "20%" }}>
                   Website
                 </TableCell>
-                <TableCell align="center" style={{ width: "30%" }}>
+                <TableCell align="center" sx={{ width: "20%" }}>
                   Password
                 </TableCell>
-                <TableCell align="center" style={{ width: "20%" }}>
+                <TableCell align="center" sx={{ width: "20%" }}>
                   Category
                 </TableCell>
-                <TableCell align="center" style={{ width: "20%" }}>
+                <TableCell align="center" sx={{ width: "10%" }}>
                   Decrypt
                 </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredPasswords.map((row) => (
-                <TableRow
-                  key={row.id}
-                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                >
-                  <TableCell align="center">{row.id}</TableCell>
-                  <TableCell component="th" scope="row">
+                <TableRow key={row.id}>
+                  <TableCell
+                    align="center"
+                    padding="none"
+                    sx={{ ...TableCellPaddingSX, ...TableCellBorderRightSX }}
+                  >
+                    {row.id}
+                  </TableCell>
+                  <TableCell
+                    component="th"
+                    scope="row"
+                    padding="none"
+                    sx={{ ...TableCellPaddingSX, ...TableCellBorderRightSX }}
+                  >
                     {row.website}
                   </TableCell>
                   <TableCell
                     align="center"
+                    padding="none"
+                    sx={{ ...TableCellPaddingSX, ...TableCellBorderRightSX }}
+                  >
+                    {row.username}
+                  </TableCell>
+                  <TableCell
+                    align="center"
                     sx={{
-                      maxWidth: "500px",
+                      maxWidth: "100px",
+                      width: "10%",
+                      ...TableCellPaddingSX,
+                      ...TableCellBorderRightSX,
                     }}
+                    padding="none"
                   >
                     <p
                       style={{
                         whiteSpace: "nowrap",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
-                        maxWidth: "500px",
                       }}
                     >
                       {row.password}
                     </p>
                   </TableCell>
-                  <TableCell component="th" scope="row">
+                  <TableCell
+                    component="th"
+                    scope="row"
+                    padding="none"
+                    sx={{ ...TableCellPaddingSX, ...TableCellBorderRightSX }}
+                  >
                     {row.category}
                   </TableCell>
-                  <TableCell align="center">
+                  <TableCell
+                    align="center"
+                    padding="none"
+                    sx={{ ...TableCellPaddingSX }}
+                  >
                     <Button
                       onClick={() => handleDecryptPasswordButton(row.id)}
                       variant="contained"
@@ -426,4 +534,12 @@ const DashboardPage = () => {
   );
 };
 
+const TableCellPaddingSX = {
+  paddingLeft: "0.5rem",
+  paddingRight: "0.5rem",
+  textAlign: "center",
+};
+const TableCellBorderRightSX = {
+  borderRight: "1px solid rgba(224, 224, 224, 1)",
+};
 export default DashboardPage;
