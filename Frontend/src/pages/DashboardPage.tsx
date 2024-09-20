@@ -260,17 +260,6 @@ const DashboardPage = () => {
     console.log(passwords);
   };
 
-  const handleCheck = () => {
-    console.log("Check");
-    const { publicKeyPem } = generateKeyPairFromString(
-      "x",
-      userDataCookies!.salt
-    );
-    console.log(publicKeyPem);
-    console.log(userDataCookies!.publicKey);
-    console.log(publicKeyPem === userDataCookies!.publicKey);
-  };
-
   useEffect(() => {
     const init = async () => {
       const userData = getUserDataFromCookies();
