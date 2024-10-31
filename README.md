@@ -19,7 +19,7 @@ Enjoy!
 ### Screens
 
 1. Login
-   ![KG2](./images/KG2.png)
+   ![KG2](./Frontend/KG2.png)
 
 2. Passwords Table
-   ![KG1](./images/KG1.png)
+   ![KG1](./Frontend/KG1.png)
